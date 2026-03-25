@@ -463,8 +463,13 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 
-  .dashboard-shell div[style*='place-items: center'] {
+  .dashboard-chart-grid div[style*='height: 300px'] {
+    height: 220px !important;
     min-height: 220px !important;
+  }
+
+  .dashboard-shell div[style*='place-items: center'] {
+    min-height: 190px !important;
   }
 
   .auth-shell div[style*='repeat(2, minmax(0, 1fr))'] {
@@ -506,6 +511,11 @@ select:focus {
 
   .summary-grid article[style] strong {
     font-size: 1.02rem !important;
+  }
+
+  .dashboard-chart-grid div[style*='height: 300px'] {
+    height: 200px !important;
+    min-height: 200px !important;
   }
 }
 
