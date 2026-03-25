@@ -22,12 +22,25 @@ import {
   getDefaultCategory,
   getMonthKey,
 } from '../lib/finance'
+import { groupTransactionsByMonth } from '../lib/transactions'
 
 function Dashboard(props) {
   const {
     user,
     transactions,
+    monthOptions,
+    summary,
+    expenseCategoryData,
+    totalTransactions,
+    typeFilter,
+    monthFilter,
+    onTypeFilterChange,
+    onMonthFilterChange,
+    onResetFilters,
     loadingTransactions,
+    loadingMoreHistory,
+    hasMoreHistory,
+    onLoadMoreHistory,
     savingTransaction,
     syncStatus,
     error,
@@ -40,8 +53,6 @@ function Dashboard(props) {
   const [form, setForm] = useState(createFormInitialState)
   const [editingId, setEditingId] = useState(null)
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false)
-  const [typeFilter, setTypeFilter] = useState('todos')
-  const [monthFilter, setMonthFilter] = useState('todos')
   const [activeTab, setActiveTab] = useState('inicio')
   const homeRef = useRef(null)
   const formRef = useRef(null)
@@ -51,52 +62,12 @@ function Dashboard(props) {
   const descriptionInputRef = useRef(null)
   const lastFocusedRef = useRef(null)
 
-  const monthOptions = useMemo(
-    () =>
-      Array.from(new Set(transactions.map((item) => getMonthKey(item.date)))).sort(
-        (a, b) => b.localeCompare(a),
-      ),
-    [transactions],
-  )
-
-  const hasTransactions = transactions.length > 0
-
-  const filteredTransactions = useMemo(() => {
-    return [...transactions]
-      .filter((item) => (typeFilter === 'todos' ? true : item.type === typeFilter))
-      .filter((item) =>
-        monthFilter === 'todos' ? true : getMonthKey(item.date) === monthFilter,
-      )
-      .sort(
-        (a, b) =>
-          `${b.date}-${b.created_at || ''}-${b.id}`.localeCompare(
-            `${a.date}-${a.created_at || ''}-${a.id}`,
-          ),
-      )
-  }, [monthFilter, transactions, typeFilter])
-
   const groupedTransactions = useMemo(() => {
-    return filteredTransactions.reduce((groups, item) => {
-      const monthKey = getMonthKey(item.date)
-      if (!groups[monthKey]) groups[monthKey] = []
-      groups[monthKey].push(item)
-      return groups
-    }, {})
-  }, [filteredTransactions])
-
-  const summary = useMemo(() => {
-    const receitas = filteredTransactions
-      .filter((item) => item.type === 'receita')
-      .reduce((total, item) => total + Number(item.amount), 0)
-
-    const despesas = filteredTransactions
-      .filter((item) => item.type === 'despesa')
-      .reduce((total, item) => total + Number(item.amount), 0)
-
-    return { receitas, despesas, saldo: receitas - despesas }
-  }, [filteredTransactions])
+    return groupTransactionsByMonth(transactions, getMonthKey)
+  }, [transactions])
 
   const currentCategories = categoryMap[form.type]
+  const hasTransactions = totalTransactions > 0
   const activeFilters = [
     typeFilter !== 'todos'
       ? { label: `Tipo: ${typeFilter === 'receita' ? 'Receitas' : 'Despesas'}` }
@@ -105,25 +76,22 @@ function Dashboard(props) {
       ? { label: `Mes: ${formatMonthLabel(monthFilter)}` }
       : null,
   ].filter(Boolean)
+  const balance = summary.receitas - summary.despesas
   const comparisonData = [
     { name: 'Receitas', value: summary.receitas, fill: '#34d399' },
     { name: 'Despesas', value: summary.despesas, fill: '#fb7185' },
   ]
 
-  const expenseCategoryData = useMemo(() => {
-    const grouped = filteredTransactions
-      .filter((item) => item.type === 'despesa')
-      .reduce((acc, item) => {
-        const category = getCategoryMeta(item.type, item.category)
-        if (!acc[item.category]) {
-          acc[item.category] = { name: category.label, value: 0, icon: category.icon }
-        }
-        acc[item.category].value += Number(item.amount)
-        return acc
-      }, {})
-
-    return Object.values(grouped).sort((a, b) => b.value - a.value)
-  }, [filteredTransactions])
+  const expenseLegendData = useMemo(() => {
+    return expenseCategoryData.map((item) => {
+      const category = getCategoryMeta('despesa', item.category)
+      return {
+        name: category.label,
+        value: Number(item.value),
+        icon: category.icon,
+      }
+    })
+  }, [expenseCategoryData])
 
   useEffect(() => {
     if (!isFormSheetOpen) return undefined
@@ -398,7 +366,7 @@ function Dashboard(props) {
             <div style={styles.balanceLayout} className="balance-layout">
               <div style={styles.balanceMain}>
                 <span style={styles.balanceLabel}>Saldo disponivel</span>
-                <strong style={styles.balanceValue}>{formatCurrency(summary.saldo)}</strong>
+                <strong style={styles.balanceValue}>{formatCurrency(balance)}</strong>
                 <p style={styles.balanceCopy}>
                   {'Acompanhe suas finan\u00E7as em tempo real, com seguran\u00E7a e praticidade.'}
                 </p>
@@ -471,7 +439,7 @@ function Dashboard(props) {
           />
           <StatCard
             label="Transacoes"
-            value={String(filteredTransactions.length)}
+            value={String(totalTransactions)}
             small
             loading={loadingTransactions}
           />
@@ -524,7 +492,7 @@ function Dashboard(props) {
             </div>
             {loadingTransactions ? (
               <PieSkeleton />
-            ) : expenseCategoryData.length === 0 ? (
+            ) : expenseLegendData.length === 0 ? (
               <ChartEmptyState
                 title="Sem despesas categorizadas"
                 description="Adicione despesas para visualizar a distribuicao por categoria neste grafico."
@@ -535,14 +503,14 @@ function Dashboard(props) {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={expenseCategoryData}
+                        data={expenseLegendData}
                         dataKey="value"
                         nameKey="name"
                         innerRadius={54}
                         outerRadius={90}
                         paddingAngle={4}
                       >
-                        {expenseCategoryData.map((entry, index) => (
+                        {expenseLegendData.map((entry, index) => (
                           <Cell
                             key={`${entry.name}-${index}`}
                             fill={chartPalette[index % chartPalette.length]}
@@ -554,7 +522,7 @@ function Dashboard(props) {
                   </ResponsiveContainer>
                 </div>
                 <div style={styles.legendList}>
-                  {expenseCategoryData.map((item, index) => (
+                  {expenseLegendData.map((item, index) => (
                     <div key={item.name} style={styles.legendItem}>
                       <span style={styles.dot(chartPalette[index % chartPalette.length])} />
                       <span style={styles.legendName}>{item.icon} {item.name}</span>
@@ -621,8 +589,7 @@ function Dashboard(props) {
                 <button
                   type="button"
                   onClick={() => {
-                    setTypeFilter('todos')
-                    setMonthFilter('todos')
+                    onResetFilters()
                   }}
                   style={styles.ghostButton}
                   className="interactive-button"
@@ -644,7 +611,11 @@ function Dashboard(props) {
               </div>
 
               <Field label="Tipo">
-                <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} style={styles.input}>
+                <select
+                  value={typeFilter}
+                  onChange={(event) => onTypeFilterChange(event.target.value)}
+                  style={styles.input}
+                >
                   <option value="todos">Todos</option>
                   <option value="receita">Receitas</option>
                   <option value="despesa">Despesas</option>
@@ -652,7 +623,11 @@ function Dashboard(props) {
               </Field>
 
               <Field label="Mes">
-                <select value={monthFilter} onChange={(event) => setMonthFilter(event.target.value)} style={styles.input}>
+                <select
+                  value={monthFilter}
+                  onChange={(event) => onMonthFilterChange(event.target.value)}
+                  style={styles.input}
+                >
                   <option value="todos">Todos os meses</option>
                   {monthOptions.map((monthKey) => (
                     <option key={monthKey} value={monthKey}>
@@ -676,7 +651,7 @@ function Dashboard(props) {
                 <p style={styles.muted}>
                   {loadingTransactions
                     ? 'Atualizando do Supabase...'
-                    : `${filteredTransactions.length} transacoes encontradas`}
+                    : `${totalTransactions} transacoes encontradas`}
                 </p>
               </div>
               <span style={styles.badge}>{typeFilter}</span>
@@ -709,7 +684,7 @@ function Dashboard(props) {
               </div>
             ) : loadingTransactions ? (
               <HistorySkeleton />
-            ) : filteredTransactions.length === 0 ? (
+            ) : totalTransactions === 0 ? (
               <div style={styles.empty}>
                 Nenhuma transacao encontrada com os filtros atuais.
               </div>
@@ -781,6 +756,17 @@ function Dashboard(props) {
                 ))}
               </div>
             )}
+
+            {!loadingTransactions && hasMoreHistory ? (
+              <button
+                type="button"
+                onClick={onLoadMoreHistory}
+                style={styles.loadMoreButton(loadingMoreHistory)}
+                className="interactive-button"
+              >
+                {loadingMoreHistory ? 'Carregando mais...' : 'Carregar mais historico'}
+              </button>
+            ) : null}
           </section>
         </section>
 
@@ -1227,6 +1213,7 @@ const styles = {
   actionRow: { display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' },
   smallButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
   deleteButton: { border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(127,29,29,0.2)', color: '#fca5a5', fontWeight: 600, cursor: 'pointer' },
+  loadMoreButton: (loading) => ({ justifySelf: 'center', width: 'min(280px, 100%)', border: '1px solid rgba(125,211,252,0.16)', borderRadius: '16px', padding: '13px 18px', background: loading ? 'rgba(30,41,59,0.9)' : 'rgba(15,23,42,0.8)', color: '#d7f9ff', fontWeight: 700, cursor: loading ? 'wait' : 'pointer' }),
   sheetOverlay: { position: 'fixed', inset: 0, padding: '24px', background: 'rgba(2, 6, 23, 0.64)', backdropFilter: 'blur(12px)', display: 'grid', alignItems: 'center', justifyItems: 'center', zIndex: 40 },
   sheetWrapper: { width: 'min(560px, 100%)', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', padding: 0 },
   fabButton: { position: 'fixed', right: 'max(18px, calc(50% - 222px))', bottom: '90px', width: '56px', height: '56px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#fff', fontSize: '2rem', lineHeight: 1, boxShadow: '0 20px 40px rgba(2, 6, 23, 0.35)', cursor: 'pointer', zIndex: 25 },

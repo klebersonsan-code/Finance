@@ -1,20 +1,71 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import AuthScreen from './components/AuthScreen'
 import Dashboard from './components/Dashboard'
+import { getMonthKey } from './lib/finance'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import {
+  buildRpcFilterParams,
+  HISTORY_PAGE_SIZE,
+  matchesTransactionFilters,
+  mergeTransactionIntoHistory,
+  removeTransactionFromHistory,
+} from './lib/transactions'
+
+const emptyMetrics = {
+  receitas: 0,
+  despesas: 0,
+  totalCount: 0,
+  expenseCategoryData: [],
+}
+
+function normalizeMetricsRow(row) {
+  return {
+    receitas: Number(row?.receitas ?? 0),
+    despesas: Number(row?.despesas ?? 0),
+    totalCount: Number(row?.total_count ?? 0),
+    expenseCategoryData: Array.isArray(row?.expense_categories)
+      ? row.expense_categories
+      : [],
+  }
+}
 
 function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [transactions, setTransactions] = useState([])
   const [loadingTransactions, setLoadingTransactions] = useState(false)
+  const [loadingMoreHistory, setLoadingMoreHistory] = useState(false)
   const [savingTransaction, setSavingTransaction] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState(null)
   const [authError, setAuthError] = useState('')
   const [syncStatus, setSyncStatus] = useState('desconectado')
+  const [typeFilter, setTypeFilter] = useState('todos')
+  const [monthFilter, setMonthFilter] = useState('todos')
+  const [monthOptions, setMonthOptions] = useState([])
+  const [metrics, setMetrics] = useState(emptyMetrics)
+  const [historyPage, setHistoryPage] = useState(1)
+  const [historyHasMore, setHistoryHasMore] = useState(false)
+
+  const requestVersionRef = useRef(0)
+  const filterSnapshotRef = useRef({ typeFilter: 'todos', monthFilter: 'todos' })
+  const metricsRefreshTimeoutRef = useRef(null)
+  const historyPageRef = useRef(1)
+  const historyLengthRef = useRef(0)
 
   const user = useMemo(() => session?.user ?? null, [session])
+
+  useEffect(() => {
+    filterSnapshotRef.current = { typeFilter, monthFilter }
+  }, [monthFilter, typeFilter])
+
+  useEffect(() => {
+    historyPageRef.current = historyPage
+  }, [historyPage])
+
+  useEffect(() => {
+    historyLengthRef.current = transactions.length
+  }, [transactions.length])
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -39,12 +90,10 @@ function App() {
 
     bootstrap()
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => {
-        if (!active) return
-        setSession(nextSession ?? null)
-      },
-    )
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!active) return
+      setSession(nextSession ?? null)
+    })
 
     return () => {
       active = false
@@ -65,41 +114,89 @@ function App() {
   useEffect(() => {
     if (!user || !isSupabaseConfigured) {
       setTransactions([])
+      setMetrics(emptyMetrics)
+      setMonthOptions([])
+      setHistoryPage(1)
+      setHistoryHasMore(false)
       setSyncStatus('desconectado')
       return
     }
 
     let active = true
-    let channel = null
 
-    async function loadTransactions(showLoading = true) {
-      if (showLoading) setLoadingTransactions(true)
-      setSyncStatus('sincronizando')
-
-      const { data, error: fetchError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false })
+    async function loadMonthOptions() {
+      const { data, error: monthsError } = await supabase.rpc('get_transaction_months')
 
       if (!active) return
 
-      if (fetchError) {
-        setError(fetchError.message)
-        setSyncStatus('erro')
-      } else {
-        setTransactions(data ?? [])
-        setError('')
-        setSyncStatus('sincronizado')
+      if (monthsError) {
+        setError(monthsError.message)
+        return
       }
 
-      if (showLoading) setLoadingTransactions(false)
+      setMonthOptions((data ?? []).map((item) => item.month_key))
     }
 
-    loadTransactions()
+    loadMonthOptions()
 
-    channel = supabase
+    return () => {
+      active = false
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!user || !isSupabaseConfigured) {
+      return
+    }
+
+    const currentVersion = ++requestVersionRef.current
+    let active = true
+
+    async function loadDashboardData() {
+      setLoadingTransactions(true)
+      setError('')
+      setSyncStatus('sincronizando')
+
+      const filters = buildRpcFilterParams(typeFilter, monthFilter)
+      const historyLimit = HISTORY_PAGE_SIZE
+
+      const [metricsResult, historyResult] = await Promise.all([
+        supabase.rpc('get_transaction_metrics', filters),
+        supabase.rpc('get_transaction_history_page', {
+          ...filters,
+          p_limit: historyLimit,
+          p_offset: 0,
+        }),
+      ])
+
+      if (!active || requestVersionRef.current !== currentVersion) return
+
+      if (metricsResult.error || historyResult.error) {
+        setError(
+          metricsResult.error?.message ||
+            historyResult.error?.message ||
+            'Nao foi possivel carregar os dados.',
+        )
+        setSyncStatus('erro')
+        setLoadingTransactions(false)
+        return
+      }
+
+      const nextMetrics = normalizeMetricsRow(metricsResult.data?.[0])
+      const nextTransactions = historyResult.data ?? []
+
+      setMetrics(nextMetrics)
+      setTransactions(nextTransactions)
+      setHistoryPage(1)
+      setHistoryHasMore(nextTransactions.length < nextMetrics.totalCount)
+      setError('')
+      setSyncStatus('sincronizado')
+      setLoadingTransactions(false)
+    }
+
+    loadDashboardData()
+
+    const channel = supabase
       .channel(`transactions:${user.id}`)
       .on(
         'postgres_changes',
@@ -109,8 +206,69 @@ function App() {
           table: 'transactions',
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          loadTransactions(false)
+        (payload) => {
+          if (!active) return
+
+          const loadedCount = Math.max(historyPageRef.current, 1) * HISTORY_PAGE_SIZE
+          const { typeFilter: currentTypeFilter, monthFilter: currentMonthFilter } =
+            filterSnapshotRef.current
+
+          if (payload.eventType === 'INSERT' && payload.new) {
+            setTransactions((current) =>
+              mergeTransactionIntoHistory(current, payload.new, {
+                typeFilter: currentTypeFilter,
+                monthFilter: currentMonthFilter,
+                loadedCount,
+              }),
+            )
+          }
+
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            setTransactions((current) =>
+              mergeTransactionIntoHistory(current, payload.new, {
+                typeFilter: currentTypeFilter,
+                monthFilter: currentMonthFilter,
+                loadedCount,
+              }),
+            )
+          }
+
+          if (payload.eventType === 'DELETE' && payload.old?.id) {
+            setTransactions((current) => removeTransactionFromHistory(current, payload.old.id))
+          }
+
+          if (metricsRefreshTimeoutRef.current) {
+            window.clearTimeout(metricsRefreshTimeoutRef.current)
+          }
+
+          metricsRefreshTimeoutRef.current = window.setTimeout(async () => {
+            const refreshFilters = buildRpcFilterParams(
+              filterSnapshotRef.current.typeFilter,
+              filterSnapshotRef.current.monthFilter,
+            )
+            const shouldRefreshMonths =
+              payload.eventType !== 'UPDATE' ||
+              getMonthKey(payload.new?.date || '') !== getMonthKey(payload.old?.date || '')
+
+            const requests = [
+              supabase.rpc('get_transaction_metrics', refreshFilters),
+              shouldRefreshMonths ? supabase.rpc('get_transaction_months') : Promise.resolve(null),
+            ]
+            const [metricsResult, monthsResult] = await Promise.all(requests)
+
+            if (!active) return
+
+            if (monthsResult && !monthsResult.error) {
+              setMonthOptions((monthsResult.data ?? []).map((item) => item.month_key))
+            }
+
+            if (!metricsResult.error) {
+              const nextMetrics = normalizeMetricsRow(metricsResult.data?.[0])
+              setMetrics(nextMetrics)
+              setHistoryHasMore(historyLengthRef.current < nextMetrics.totalCount)
+              setError('')
+            }
+          }, 180)
         },
       )
       .subscribe((status) => {
@@ -128,9 +286,84 @@ function App() {
 
     return () => {
       active = false
-      if (channel) supabase.removeChannel(channel)
+      if (metricsRefreshTimeoutRef.current) {
+        window.clearTimeout(metricsRefreshTimeoutRef.current)
+      }
+      supabase.removeChannel(channel)
     }
-  }, [user])
+  }, [monthFilter, typeFilter, user])
+
+  useEffect(() => {
+    if (monthFilter === 'todos') return
+    if (monthOptions.includes(monthFilter)) return
+    setMonthFilter('todos')
+  }, [monthFilter, monthOptions])
+
+  async function refreshMetricsOnly() {
+    if (!user) return
+
+    const filters = buildRpcFilterParams(
+      filterSnapshotRef.current.typeFilter,
+      filterSnapshotRef.current.monthFilter,
+    )
+
+    const { data, error: metricsError } = await supabase.rpc(
+      'get_transaction_metrics',
+      filters,
+    )
+
+    if (metricsError) {
+      setError(metricsError.message)
+      return
+    }
+
+    const nextMetrics = normalizeMetricsRow(data?.[0])
+    setMetrics(nextMetrics)
+    setHistoryHasMore(historyLengthRef.current < nextMetrics.totalCount)
+  }
+
+  async function refreshMonthOptionsOnly() {
+    if (!user) return
+
+    const { data, error: monthsError } = await supabase.rpc('get_transaction_months')
+
+    if (monthsError) {
+      setError(monthsError.message)
+      return
+    }
+
+    setMonthOptions((data ?? []).map((item) => item.month_key))
+  }
+
+  async function loadMoreHistory() {
+    if (!user || loadingMoreHistory || !historyHasMore) return
+
+    const nextPage = historyPage + 1
+    const offset = historyPage * HISTORY_PAGE_SIZE
+
+    setLoadingMoreHistory(true)
+
+    const { data, error: historyError } = await supabase.rpc(
+      'get_transaction_history_page',
+      {
+        ...buildRpcFilterParams(typeFilter, monthFilter),
+        p_limit: HISTORY_PAGE_SIZE,
+        p_offset: offset,
+      },
+    )
+
+    if (historyError) {
+      setError(historyError.message)
+      setLoadingMoreHistory(false)
+      return
+    }
+
+    const nextItems = data ?? []
+    setTransactions((current) => [...current, ...nextItems])
+    setHistoryPage(nextPage)
+    setHistoryHasMore(offset + nextItems.length < metrics.totalCount)
+    setLoadingMoreHistory(false)
+  }
 
   async function handleSignIn(email, password) {
     if (!isSupabaseConfigured) return
@@ -194,9 +427,15 @@ function App() {
           .update(payload)
           .eq('id', transaction.id)
           .eq('user_id', user.id)
-      : supabase.from('transactions').insert(payload)
+          .select('id, description, amount, type, category, date, created_at')
+          .single()
+      : supabase
+          .from('transactions')
+          .insert(payload)
+          .select('id, description, amount, type, category, date, created_at')
+          .single()
 
-    const { error: saveError } = await query
+    const { data: savedTransaction, error: saveError } = await query
 
     if (saveError) {
       setError(saveError.message)
@@ -204,6 +443,18 @@ function App() {
       setSavingTransaction(false)
       return false
     }
+
+    const loadedCount = Math.max(historyPageRef.current, 1) * HISTORY_PAGE_SIZE
+
+    setTransactions((current) =>
+      mergeTransactionIntoHistory(current, savedTransaction, {
+        typeFilter,
+        monthFilter,
+        loadedCount,
+      }),
+    )
+
+    await Promise.all([refreshMetricsOnly(), refreshMonthOptionsOnly()])
 
     setNotice({
       type: 'success',
@@ -216,7 +467,9 @@ function App() {
   }
 
   async function handleDeleteTransaction(id) {
-    if (!user) return
+    if (!user) return false
+
+    const currentTransaction = transactions.find((item) => item.id === id)
 
     setError('')
     setNotice(null)
@@ -233,6 +486,17 @@ function App() {
       return false
     }
 
+    setTransactions((current) => removeTransactionFromHistory(current, id))
+
+    if (
+      currentTransaction &&
+      matchesTransactionFilters(currentTransaction, typeFilter, monthFilter)
+    ) {
+      setHistoryHasMore(true)
+    }
+
+    await Promise.all([refreshMetricsOnly(), refreshMonthOptionsOnly()])
+
     setNotice({ type: 'success', message: 'Transacao excluida com sucesso.' })
     return true
   }
@@ -246,6 +510,8 @@ function App() {
       setError(signOutError.message)
     } else {
       setTransactions([])
+      setMetrics(emptyMetrics)
+      setMonthOptions([])
       setSession(null)
       setSyncStatus('desconectado')
     }
@@ -267,7 +533,22 @@ function App() {
     <Dashboard
       user={user}
       transactions={transactions}
+      monthOptions={monthOptions}
+      summary={metrics}
+      expenseCategoryData={metrics.expenseCategoryData}
+      totalTransactions={metrics.totalCount}
+      typeFilter={typeFilter}
+      monthFilter={monthFilter}
+      onTypeFilterChange={setTypeFilter}
+      onMonthFilterChange={setMonthFilter}
+      onResetFilters={() => {
+        setTypeFilter('todos')
+        setMonthFilter('todos')
+      }}
       loadingTransactions={loadingTransactions}
+      loadingMoreHistory={loadingMoreHistory}
+      hasMoreHistory={historyHasMore}
+      onLoadMoreHistory={loadMoreHistory}
       savingTransaction={savingTransaction}
       syncStatus={syncStatus}
       error={error}
