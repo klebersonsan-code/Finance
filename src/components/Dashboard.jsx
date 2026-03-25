@@ -88,6 +88,14 @@ function Dashboard(props) {
   }, [filteredTransactions])
 
   const currentCategories = categoryMap[form.type]
+  const activeFilters = [
+    typeFilter !== 'todos'
+      ? { label: `Tipo: ${typeFilter === 'receita' ? 'Receitas' : 'Despesas'}` }
+      : null,
+    monthFilter !== 'todos'
+      ? { label: `Mes: ${formatMonthLabel(monthFilter)}` }
+      : null,
+  ].filter(Boolean)
   const syncTone =
     syncStatus === 'erro'
       ? styles.syncBadgeError
@@ -252,6 +260,11 @@ function Dashboard(props) {
             </div>
             {loadingTransactions ? (
               <ChartSkeleton />
+            ) : comparisonData.every((item) => item.value === 0) ? (
+              <ChartEmptyState
+                title="Nada para comparar ainda"
+                description="Quando houver receitas ou despesas no periodo, este comparativo aparecera aqui."
+              />
             ) : (
               <div style={styles.chartBox}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -283,7 +296,10 @@ function Dashboard(props) {
             {loadingTransactions ? (
               <PieSkeleton />
             ) : expenseCategoryData.length === 0 ? (
-              <div style={styles.empty}>Nenhuma despesa para o grafico.</div>
+              <ChartEmptyState
+                title="Sem despesas categorizadas"
+                description="Adicione despesas para visualizar a distribuicao por categoria neste grafico."
+              />
             ) : (
               <div style={styles.pieWrap}>
                 <div style={styles.chartBox}>
@@ -402,6 +418,18 @@ function Dashboard(props) {
                 >
                   Limpar
                 </button>
+              </div>
+
+              <div style={styles.filterSummary}>
+                {activeFilters.length === 0 ? (
+                  <span style={styles.filterHint}>Sem filtros ativos no momento.</span>
+                ) : (
+                  activeFilters.map((filter) => (
+                    <span key={filter.label} style={styles.filterChip}>
+                      {filter.label}
+                    </span>
+                  ))
+                )}
               </div>
 
               <Field label="Tipo">
@@ -646,6 +674,18 @@ function HistorySkeleton() {
   )
 }
 
+function ChartEmptyState({ title, description }) {
+  return (
+    <div style={styles.chartEmpty}>
+      <div style={styles.chartEmptyIcon}>~</div>
+      <div style={styles.chartEmptyContent}>
+        <strong style={styles.chartEmptyTitle}>{title}</strong>
+        <p style={styles.chartEmptyDescription}>{description}</p>
+      </div>
+    </div>
+  )
+}
+
 const tooltipStyle = {
   content: {
     background: 'rgba(9, 18, 33, 0.96)',
@@ -711,7 +751,15 @@ const styles = {
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' },
   cardTitle: { margin: 0, color: '#f8fafc', fontSize: '1.24rem', lineHeight: 1.2 },
   cardSubtitle: { margin: '8px 0 0', color: '#7f93b3', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: '460px' },
+  filterSummary: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+  filterChip: { display: 'inline-flex', alignItems: 'center', padding: '8px 12px', borderRadius: '999px', background: 'rgba(37,99,235,0.16)', border: '1px solid rgba(125,211,252,0.14)', color: '#cbe9ff', fontSize: '0.84rem', fontWeight: 600 },
+  filterHint: { color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6 },
   chartBox: { width: '100%', height: '300px' },
+  chartEmpty: { minHeight: '300px', display: 'grid', placeItems: 'center', gap: '16px', textAlign: 'center', padding: '28px', borderRadius: '22px', background: 'rgba(15,23,42,0.42)', border: '1px dashed rgba(148,163,184,0.18)' },
+  chartEmptyIcon: { width: '56px', height: '56px', borderRadius: '18px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(20,184,166,0.12))', border: '1px solid rgba(125,211,252,0.12)', color: '#cbe9ff', fontSize: '1.4rem', fontWeight: 700 },
+  chartEmptyContent: { display: 'grid', gap: '8px', maxWidth: '340px' },
+  chartEmptyTitle: { color: '#f8fafc', fontSize: '1rem' },
+  chartEmptyDescription: { color: '#94a3b8', fontSize: '0.92rem', lineHeight: 1.7 },
   pieWrap: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: '18px', alignItems: 'center' },
   pieSkeletonWrap: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: '18px', alignItems: 'center' },
   pieSkeleton: {
