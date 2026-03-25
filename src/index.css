@@ -187,6 +187,14 @@ select:focus {
   animation-duration: 720ms;
 }
 
+.dashboard-content-grid {
+  order: 4;
+}
+
+.dashboard-chart-grid {
+  order: 5;
+}
+
 .skeleton-block {
   position: relative;
   overflow: hidden;
