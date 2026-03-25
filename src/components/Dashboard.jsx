@@ -214,10 +214,30 @@ function Dashboard(props) {
         ) : null}
 
         <section style={styles.grid4}>
-          <StatCard label="Saldo filtrado" value={formatCurrency(summary.saldo)} />
-          <StatCard label="Receitas" value={formatCurrency(summary.receitas)} green />
-          <StatCard label="Despesas" value={formatCurrency(summary.despesas)} red />
-          <StatCard label="Sincronizacao" value={syncStatus} small tone={syncTone} />
+          <StatCard
+            label="Saldo filtrado"
+            value={formatCurrency(summary.saldo)}
+            loading={loadingTransactions}
+          />
+          <StatCard
+            label="Receitas"
+            value={formatCurrency(summary.receitas)}
+            green
+            loading={loadingTransactions}
+          />
+          <StatCard
+            label="Despesas"
+            value={formatCurrency(summary.despesas)}
+            red
+            loading={loadingTransactions}
+          />
+          <StatCard
+            label="Sincronizacao"
+            value={syncStatus}
+            small
+            tone={syncTone}
+            loading={loadingTransactions}
+          />
         </section>
 
         <section style={styles.grid2}>
@@ -230,21 +250,25 @@ function Dashboard(props) {
                 </p>
               </div>
             </div>
-            <div style={styles.chartBox}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={comparisonData} barSize={52}>
-                  <CartesianGrid stroke="rgba(148,163,184,0.12)" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={formatCurrency} />
-                  <Tooltip contentStyle={tooltipStyle.content} labelStyle={tooltipStyle.label} formatter={(value) => [formatCurrency(value), 'Valor']} />
-                  <Bar dataKey="value" radius={[12, 12, 0, 0]}>
-                    {comparisonData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {loadingTransactions ? (
+              <ChartSkeleton />
+            ) : (
+              <div style={styles.chartBox}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={comparisonData} barSize={52}>
+                    <CartesianGrid stroke="rgba(148,163,184,0.12)" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={formatCurrency} />
+                    <Tooltip contentStyle={tooltipStyle.content} labelStyle={tooltipStyle.label} formatter={(value) => [formatCurrency(value), 'Valor']} />
+                    <Bar dataKey="value" radius={[12, 12, 0, 0]}>
+                      {comparisonData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
 
           <div style={styles.card} className="premium-card fade-up">
@@ -256,7 +280,9 @@ function Dashboard(props) {
                 </p>
               </div>
             </div>
-            {expenseCategoryData.length === 0 ? (
+            {loadingTransactions ? (
+              <PieSkeleton />
+            ) : expenseCategoryData.length === 0 ? (
               <div style={styles.empty}>Nenhuma despesa para o grafico.</div>
             ) : (
               <div style={styles.pieWrap}>
@@ -437,6 +463,8 @@ function Dashboard(props) {
                   </div>
                 </div>
               </div>
+            ) : loadingTransactions ? (
+              <HistorySkeleton />
             ) : filteredTransactions.length === 0 ? (
               <div style={styles.empty}>
                 Nenhuma transacao encontrada com os filtros atuais.
@@ -521,21 +549,100 @@ function Field({ label, children }) {
   )
 }
 
-function StatCard({ label, value, green, red, small, tone }) {
+function StatCard({ label, value, green, red, small, tone, loading }) {
   return (
     <article style={{ ...styles.statCard, ...(tone || {}) }}>
       <span style={styles.statLabel}>{label}</span>
-      <strong
-        style={{
-          ...styles.statValue,
-          color: small ? '#7dd3fc' : green ? '#4ade80' : red ? '#f87171' : '#67e8f9',
-          fontSize: small ? '1.15rem' : styles.statValue.fontSize,
-          textTransform: small ? 'capitalize' : 'none',
-        }}
-      >
-        {value}
-      </strong>
+      {loading ? (
+        <span
+          style={{
+            ...styles.skeletonLine,
+            ...styles.skeletonPulse,
+            width: small ? '70%' : '82%',
+            height: small ? '22px' : '34px',
+            borderRadius: '12px',
+          }}
+          className="skeleton-block"
+        />
+      ) : (
+        <strong
+          style={{
+            ...styles.statValue,
+            color: small ? '#7dd3fc' : green ? '#4ade80' : red ? '#f87171' : '#67e8f9',
+            fontSize: small ? '1.15rem' : styles.statValue.fontSize,
+            textTransform: small ? 'capitalize' : 'none',
+          }}
+        >
+          {value}
+        </strong>
+      )}
     </article>
+  )
+}
+
+function ChartSkeleton() {
+  return (
+    <div style={styles.chartSkeleton}>
+      <div style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '18%', height: '68%' }} className="skeleton-block" />
+      <div style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '18%', height: '88%' }} className="skeleton-block" />
+      <div style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '18%', height: '54%' }} className="skeleton-block" />
+      <div style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '18%', height: '76%' }} className="skeleton-block" />
+    </div>
+  )
+}
+
+function PieSkeleton() {
+  return (
+    <div style={styles.pieSkeletonWrap}>
+      <div style={{ ...styles.pieSkeleton, ...styles.skeletonPulse }} className="skeleton-block" />
+      <div style={styles.legendSkeletonList}>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} style={styles.legendSkeletonItem}>
+            <span style={{ ...styles.skeletonDot, ...styles.skeletonPulse }} className="skeleton-block" />
+            <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '58%', height: '14px' }} className="skeleton-block" />
+            <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '26%', height: '14px' }} className="skeleton-block" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function HistorySkeleton() {
+  return (
+    <div style={styles.groupList}>
+      {Array.from({ length: 2 }).map((_, groupIndex) => (
+        <section key={groupIndex} style={styles.monthCard} className="month-card">
+          <header style={styles.monthHeader}>
+            <div style={styles.skeletonColumn}>
+              <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '180px', height: '20px' }} className="skeleton-block" />
+              <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '110px', height: '14px' }} className="skeleton-block" />
+            </div>
+            <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '120px', height: '34px', borderRadius: '999px' }} className="skeleton-block" />
+          </header>
+          <div style={styles.transactionList}>
+            {Array.from({ length: 3 }).map((_, itemIndex) => (
+              <div key={itemIndex} style={styles.transactionItem}>
+                <div style={styles.transactionLeft}>
+                  <div style={{ ...styles.iconBubble, ...styles.skeletonPulse }} className="skeleton-block" />
+                  <div style={styles.skeletonColumn}>
+                    <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '220px', height: '18px' }} className="skeleton-block" />
+                    <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '160px', height: '14px' }} className="skeleton-block" />
+                  </div>
+                </div>
+                <div style={styles.transactionRight}>
+                  <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '110px', height: '18px' }} className="skeleton-block" />
+                  <div style={styles.actionRow}>
+                    <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '74px', height: '34px' }} className="skeleton-block" />
+                    <span style={{ ...styles.skeletonLine, ...styles.skeletonPulse, width: '74px', height: '34px' }} className="skeleton-block" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
   )
 }
 
@@ -606,9 +713,33 @@ const styles = {
   cardSubtitle: { margin: '8px 0 0', color: '#7f93b3', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: '460px' },
   chartBox: { width: '100%', height: '300px' },
   pieWrap: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: '18px', alignItems: 'center' },
+  pieSkeletonWrap: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: '18px', alignItems: 'center' },
+  pieSkeleton: {
+    width: '100%',
+    maxWidth: '220px',
+    aspectRatio: '1 / 1',
+    borderRadius: '999px',
+    margin: '0 auto',
+    background: 'rgba(148,163,184,0.1)',
+    border: '20px solid rgba(148,163,184,0.06)',
+  },
   legendList: { display: 'grid', gap: '10px' },
+  legendSkeletonList: { display: 'grid', gap: '10px' },
   legendItem: { display: 'grid', gridTemplateColumns: '12px minmax(0,1fr) auto', gap: '10px', alignItems: 'center', padding: '12px 14px', borderRadius: '16px', background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.08)' },
+  legendSkeletonItem: { display: 'grid', gridTemplateColumns: '12px minmax(0,1fr) auto', gap: '10px', alignItems: 'center', padding: '12px 14px', borderRadius: '16px', background: 'rgba(15,23,42,0.42)', border: '1px solid rgba(148,163,184,0.08)' },
   dot: (background) => ({ width: '12px', height: '12px', borderRadius: '999px', background }),
+  skeletonDot: { width: '12px', height: '12px', borderRadius: '999px', background: 'rgba(148,163,184,0.18)' },
+  skeletonLine: { display: 'block', background: 'rgba(148,163,184,0.14)' },
+  skeletonPulse: { boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)' },
+  skeletonColumn: { display: 'grid', gap: '10px' },
+  chartSkeleton: {
+    height: '300px',
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: '14px',
+    padding: '18px 6px 10px',
+  },
   legendName: { color: '#cbd5e1', fontSize: '0.9rem' },
   legendValue: { color: '#f8fafc', fontSize: '0.88rem' },
   empty: { borderRadius: '18px', padding: '24px', textAlign: 'center', color: '#94a3b8', background: 'rgba(15,23,42,0.56)', border: '1px dashed rgba(148,163,184,0.24)' },
