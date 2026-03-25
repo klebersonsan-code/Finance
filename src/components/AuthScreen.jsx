@@ -5,6 +5,7 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [localError, setLocalError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -32,11 +33,27 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
       <section style={styles.card} className="auth-card premium-card fade-up">
         <div style={styles.content}>
           <span style={styles.eyebrow}>Finance Pro</span>
+          <span style={styles.kickerBadge}>Seu controle financeiro, elevado</span>
           <h1 style={styles.title}>Finance Pro</h1>
           <p style={styles.subtitle}>
             Gerencie suas financas de forma simples e inteligente. Acompanhe
             suas receitas, despesas e mantenha tudo sob controle.
           </p>
+
+          <div style={styles.featureList}>
+            <div style={styles.featureItem}>
+              <span style={styles.featureDot} />
+              <span style={styles.featureText}>Visao clara das suas movimentacoes</span>
+            </div>
+            <div style={styles.featureItem}>
+              <span style={styles.featureDot} />
+              <span style={styles.featureText}>Acesso rapido em qualquer dispositivo</span>
+            </div>
+            <div style={styles.featureItem}>
+              <span style={styles.featureDot} />
+              <span style={styles.featureText}>Experiencia simples, elegante e segura</span>
+            </div>
+          </div>
 
           {!configured ? (
             <div style={styles.notice}>
@@ -52,6 +69,19 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
         </div>
 
         <form onSubmit={handleSubmit} style={styles.form} className="premium-subcard">
+          <div style={styles.formTop}>
+            <div>
+              <strong style={styles.formTitle}>
+                {mode === 'signin' ? 'Acessar conta' : 'Criar sua conta'}
+              </strong>
+              <p style={styles.formSubtitle}>
+                {mode === 'signin'
+                  ? 'Entre para continuar de onde parou.'
+                  : 'Comece a organizar sua vida financeira em minutos.'}
+              </p>
+            </div>
+          </div>
+
           <div style={styles.modeSwitch}>
             <button
               type="button"
@@ -84,9 +114,19 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
           </label>
 
           <label style={styles.field}>
-            <span style={styles.label}>Senha</span>
+            <span style={styles.labelRow}>
+              <span style={styles.label}>Senha</span>
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                style={styles.textButton}
+                className="interactive-button"
+              >
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
+            </span>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Sua senha"
@@ -114,8 +154,8 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
 
           <p style={styles.helper}>
             {mode === 'signin'
-              ? 'Use seu login para acessar suas transacoes salvas.'
-              : 'No cadastro, pode ser necessario confirmar o e-mail no Supabase.'}
+              ? 'Use seu login para acessar seu painel financeiro.'
+              : 'Depois do cadastro, verifique seu e-mail caso seja solicitada confirmacao.'}
           </p>
         </form>
       </section>
@@ -170,7 +210,7 @@ const styles = {
   content: {
     display: 'grid',
     alignContent: 'center',
-    gap: '14px',
+    gap: '16px',
     padding: '12px',
   },
   eyebrow: {
@@ -181,17 +221,53 @@ const styles = {
     fontSize: '12px',
     fontWeight: 700,
   },
+  kickerBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    width: 'fit-content',
+    padding: '8px 12px',
+    borderRadius: '999px',
+    background: 'rgba(56, 189, 248, 0.08)',
+    border: '1px solid rgba(125, 211, 252, 0.14)',
+    color: '#cbe9ff',
+    fontSize: '0.84rem',
+    fontWeight: 600,
+  },
   title: {
     margin: 0,
     color: '#f8fafc',
     fontSize: 'clamp(2.1rem, 5vw, 4rem)',
-    lineHeight: 1,
+    lineHeight: 0.96,
   },
   subtitle: {
     margin: 0,
     color: '#94a3b8',
-    fontSize: '1rem',
-    lineHeight: 1.7,
+    fontSize: '1.02rem',
+    lineHeight: 1.85,
+    maxWidth: '520px',
+  },
+  featureList: {
+    display: 'grid',
+    gap: '12px',
+    marginTop: '6px',
+  },
+  featureItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    color: '#cbd5e1',
+  },
+  featureDot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '999px',
+    background: 'linear-gradient(135deg, #67e8f9, #34d399)',
+    boxShadow: '0 0 0 6px rgba(103, 232, 249, 0.08)',
+    flexShrink: 0,
+  },
+  featureText: {
+    fontSize: '0.95rem',
+    lineHeight: 1.55,
   },
   notice: {
     marginTop: '10px',
@@ -213,11 +289,25 @@ const styles = {
   form: {
     display: 'grid',
     gap: '16px',
-    padding: '22px',
+    padding: '24px',
     borderRadius: '24px',
     background: 'rgba(15, 23, 42, 0.78)',
     border: '1px solid rgba(148, 163, 184, 0.14)',
     alignContent: 'start',
+  },
+  formTop: {
+    display: 'grid',
+    gap: '6px',
+  },
+  formTitle: {
+    color: '#f8fafc',
+    fontSize: '1.1rem',
+  },
+  formSubtitle: {
+    margin: 0,
+    color: '#7f93b3',
+    fontSize: '0.92rem',
+    lineHeight: 1.6,
   },
   modeSwitch: {
     display: 'grid',
@@ -240,10 +330,25 @@ const styles = {
     display: 'grid',
     gap: '8px',
   },
+  labelRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '10px',
+  },
   label: {
     color: '#cbd5e1',
     fontSize: '0.92rem',
     fontWeight: 600,
+  },
+  textButton: {
+    border: 'none',
+    padding: 0,
+    background: 'transparent',
+    color: '#7dd3fc',
+    fontSize: '0.84rem',
+    fontWeight: 600,
+    cursor: 'pointer',
   },
   input: {
     width: '100%',
@@ -278,8 +383,8 @@ const styles = {
   }),
   helper: {
     margin: 0,
-    color: '#64748b',
-    lineHeight: 1.6,
+    color: '#6d7f99',
+    lineHeight: 1.65,
     fontSize: '0.92rem',
   },
 }
