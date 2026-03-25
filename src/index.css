@@ -220,13 +220,7 @@ select:focus {
 }
 
 .app-phone-shell::before {
-  content: '';
-  position: absolute;
-  inset: -14px;
-  border-radius: 36px;
-  border: 1px solid rgba(148, 163, 184, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 28%);
-  pointer-events: none;
+  display: none;
 }
 
 .app-header-card {
@@ -249,6 +243,11 @@ select:focus {
 
 .dashboard-chart-grid {
   order: 5;
+}
+
+.app-bottom-nav,
+.app-fab {
+  display: none !important;
 }
 
 .skeleton-block {
@@ -299,13 +298,36 @@ select:focus {
     padding: 20px !important;
   }
 
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    max-width: 480px !important;
+    gap: 18px !important;
+  }
+
   .app-phone-shell::before {
+    display: block;
+    content: '';
+    position: absolute;
     inset: -10px;
     border-radius: 30px;
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 28%);
+    pointer-events: none;
+  }
+
+  .app-bottom-nav,
+  .app-fab {
+    display: block !important;
+  }
+
+  .app-bottom-nav {
+    display: grid !important;
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 768px) {
   .dashboard-shell {
     padding-left: 14px;
     padding-right: 14px;
