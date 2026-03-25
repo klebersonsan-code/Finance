@@ -157,10 +157,23 @@ function Dashboard(props) {
         <header style={styles.hero} className="premium-card hero-card fade-up">
           <div>
             <span style={styles.kicker}>Dashboard Financeiro</span>
+            <span style={styles.heroPill}>Visao premium do seu fluxo financeiro</span>
             <h1 style={styles.title}>Controle suas entradas e saidas com foco</h1>
             <p style={styles.subtitle}>
               Dados sincronizados com Supabase em tempo real e separados por usuario.
             </p>
+            <div style={styles.heroStats}>
+              <div style={styles.heroStat}>
+                <span style={styles.heroStatLabel}>Transacoes</span>
+                <strong style={styles.heroStatValue}>{transactions.length}</strong>
+              </div>
+              <div style={styles.heroStat}>
+                <span style={styles.heroStatLabel}>Periodo exibido</span>
+                <strong style={styles.heroStatValue}>
+                  {monthFilter === 'todos' ? 'Todos os meses' : formatMonthLabel(monthFilter)}
+                </strong>
+              </div>
+            </div>
           </div>
 
           <div style={styles.heroSide}>
@@ -186,7 +199,12 @@ function Dashboard(props) {
         <section style={styles.grid2}>
           <div style={styles.card} className="premium-card fade-up">
             <div style={styles.cardHeader}>
-              <h2 style={styles.cardTitle}>Receitas vs despesas</h2>
+              <div>
+                <h2 style={styles.cardTitle}>Receitas vs despesas</h2>
+                <p style={styles.cardSubtitle}>
+                  Compare rapidamente a entrada e a saida do periodo filtrado.
+                </p>
+              </div>
             </div>
             <div style={styles.chartBox}>
               <ResponsiveContainer width="100%" height="100%">
@@ -207,7 +225,12 @@ function Dashboard(props) {
 
           <div style={styles.card} className="premium-card fade-up">
             <div style={styles.cardHeader}>
-              <h2 style={styles.cardTitle}>Gastos por categoria</h2>
+              <div>
+                <h2 style={styles.cardTitle}>Gastos por categoria</h2>
+                <p style={styles.cardSubtitle}>
+                  Entenda onde seu dinheiro esta sendo distribuido.
+                </p>
+              </div>
             </div>
             {expenseCategoryData.length === 0 ? (
               <div style={styles.empty}>Nenhuma despesa para o grafico.</div>
@@ -253,9 +276,16 @@ function Dashboard(props) {
           <aside style={styles.sidebar}>
             <form onSubmit={handleSubmit} style={styles.card} className="premium-card fade-up">
               <div style={styles.cardHeader}>
-                <h2 style={styles.cardTitle}>
-                  {editingId ? 'Editar transacao' : 'Nova transacao'}
-                </h2>
+                <div>
+                  <h2 style={styles.cardTitle}>
+                    {editingId ? 'Editar transacao' : 'Nova transacao'}
+                  </h2>
+                  <p style={styles.cardSubtitle}>
+                    {editingId
+                      ? 'Atualize os detalhes da movimentacao selecionada.'
+                      : 'Adicione uma nova movimentacao ao seu painel.'}
+                  </p>
+                </div>
                 {editingId ? (
                   <button type="button" onClick={resetForm} style={styles.ghostButton} className="interactive-button">
                     Cancelar
@@ -305,7 +335,12 @@ function Dashboard(props) {
 
             <section style={styles.card} className="premium-card fade-up">
               <div style={styles.cardHeader}>
-                <h2 style={styles.cardTitle}>Filtros</h2>
+                <div>
+                  <h2 style={styles.cardTitle}>Filtros</h2>
+                  <p style={styles.cardSubtitle}>
+                    Ajuste o recorte exibido no dashboard.
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -364,6 +399,18 @@ function Dashboard(props) {
                         <h3 style={styles.monthTitle}>{formatMonthLabel(monthKey)}</h3>
                         <p style={styles.muted}>{items.length} lancamentos</p>
                       </div>
+                      <span style={styles.monthBadge}>
+                        {formatCurrency(
+                          items.reduce(
+                            (total, current) =>
+                              total +
+                              (current.type === 'receita'
+                                ? Number(current.amount)
+                                : -Number(current.amount)),
+                            0,
+                          ),
+                        )}
+                      </span>
                     </header>
 
                     <div style={styles.transactionList}>
@@ -461,35 +508,41 @@ const cardBase = {
 const styles = {
   page: {
     minHeight: '100vh',
-    padding: '32px 20px 40px',
+    padding: '36px 20px 48px',
     background:
       'radial-gradient(circle at top, rgba(59,130,246,0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(16,185,129,0.12), transparent 28%), #07111f',
   },
-  container: { maxWidth: '1180px', margin: '0 auto', display: 'grid', gap: '24px' },
-  hero: { ...cardBase, display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', padding: '28px' },
+  container: { maxWidth: '1180px', margin: '0 auto', display: 'grid', gap: '26px' },
+  hero: { ...cardBase, display: 'flex', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap', padding: '32px' },
   kicker: { color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '12px', fontWeight: 700 },
-  title: { margin: '12px 0 0', color: '#f8fafc', fontSize: 'clamp(2.2rem, 5vw, 4rem)', lineHeight: 1 },
-  subtitle: { margin: '14px 0 0', color: '#94a3b8', lineHeight: 1.6, maxWidth: '680px' },
-  heroSide: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' },
-  userBox: { ...cardBase, padding: '12px 14px', background: 'rgba(15, 23, 42, 0.82)' },
+  heroPill: { display: 'inline-flex', alignItems: 'center', width: 'fit-content', marginTop: '14px', padding: '9px 14px', borderRadius: '999px', background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(125,211,252,0.14)', color: '#cbe9ff', fontSize: '0.84rem', fontWeight: 600 },
+  title: { margin: '18px 0 0', color: '#f8fafc', fontSize: 'clamp(2.5rem, 5vw, 4.4rem)', lineHeight: 0.96, maxWidth: '700px' },
+  subtitle: { margin: '16px 0 0', color: '#94a3b8', lineHeight: 1.8, maxWidth: '700px', fontSize: '1.02rem' },
+  heroStats: { display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '22px' },
+  heroStat: { display: 'grid', gap: '6px', minWidth: '160px', padding: '14px 16px', borderRadius: '18px', background: 'rgba(15, 23, 42, 0.58)', border: '1px solid rgba(148,163,184,0.12)' },
+  heroStatLabel: { color: '#7f93b3', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.12em' },
+  heroStatValue: { color: '#eff6ff', fontSize: '1rem' },
+  heroSide: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', alignSelf: 'flex-start' },
+  userBox: { ...cardBase, padding: '14px 16px', background: 'rgba(15, 23, 42, 0.82)' },
   userLabel: { display: 'block', fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em' },
   userValue: { color: '#e2e8f0', fontSize: '0.9rem' },
   secondaryButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '16px', padding: '14px 18px', background: 'rgba(15,23,42,0.85)', color: '#e2e8f0', fontWeight: 700, cursor: 'pointer' },
   alert: { ...cardBase, padding: '14px 16px', background: 'rgba(127,29,29,0.18)', color: '#fca5a5' },
   grid4: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' },
-  statCard: { ...cardBase, padding: '22px', display: 'grid', gap: '10px' },
+  statCard: { ...cardBase, padding: '24px', display: 'grid', gap: '10px', background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))' },
   statLabel: { color: '#94a3b8', fontSize: '0.92rem' },
-  statValue: { color: '#67e8f9', fontSize: '1.85rem' },
+  statValue: { color: '#67e8f9', fontSize: '2rem', lineHeight: 1 },
   grid2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' },
   contentGrid: { display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) minmax(0, 1fr)', gap: '20px', alignItems: 'start' },
   sidebar: { display: 'grid', gap: '20px' },
-  card: { ...cardBase, padding: '24px', display: 'grid', gap: '18px' },
-  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' },
-  cardTitle: { margin: 0, color: '#f8fafc', fontSize: '1.18rem' },
-  chartBox: { width: '100%', height: '280px' },
+  card: { ...cardBase, padding: '26px', display: 'grid', gap: '20px', background: 'linear-gradient(180deg, rgba(11,20,36,0.96), rgba(9,18,33,0.88))' },
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' },
+  cardTitle: { margin: 0, color: '#f8fafc', fontSize: '1.24rem', lineHeight: 1.2 },
+  cardSubtitle: { margin: '8px 0 0', color: '#7f93b3', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: '460px' },
+  chartBox: { width: '100%', height: '300px' },
   pieWrap: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: '18px', alignItems: 'center' },
   legendList: { display: 'grid', gap: '10px' },
-  legendItem: { display: 'grid', gridTemplateColumns: '12px minmax(0,1fr) auto', gap: '10px', alignItems: 'center', padding: '10px 12px', borderRadius: '14px', background: 'rgba(15,23,42,0.55)' },
+  legendItem: { display: 'grid', gridTemplateColumns: '12px minmax(0,1fr) auto', gap: '10px', alignItems: 'center', padding: '12px 14px', borderRadius: '16px', background: 'rgba(15,23,42,0.55)', border: '1px solid rgba(148,163,184,0.08)' },
   dot: (background) => ({ width: '12px', height: '12px', borderRadius: '999px', background }),
   legendName: { color: '#cbd5e1', fontSize: '0.9rem' },
   legendValue: { color: '#f8fafc', fontSize: '0.88rem' },
@@ -500,22 +553,23 @@ const styles = {
   input: { width: '100%', boxSizing: 'border-box', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '14px', padding: '13px 14px', fontSize: '0.98rem', color: '#f8fafc', background: 'rgba(15,23,42,0.82)', outline: 'none' },
   primaryButton: (busy) => ({ border: 'none', borderRadius: '16px', padding: '14px 18px', background: busy ? 'rgba(51,65,85,0.92)' : 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#eff6ff', fontWeight: 700, cursor: busy ? 'wait' : 'pointer' }),
   ghostButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '12px', padding: '10px 14px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
-  muted: { margin: '8px 0 0', color: '#64748b', fontSize: '0.92rem' },
-  badge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '7px 12px', borderRadius: '999px', background: 'rgba(37,99,235,0.18)', color: '#93c5fd', fontSize: '0.84rem', fontWeight: 700, textTransform: 'capitalize' },
+  muted: { margin: '8px 0 0', color: '#64748b', fontSize: '0.92rem', lineHeight: 1.6 },
+  badge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '999px', background: 'rgba(37,99,235,0.18)', color: '#93c5fd', fontSize: '0.84rem', fontWeight: 700, textTransform: 'capitalize', border: '1px solid rgba(125,211,252,0.12)' },
   groupList: { display: 'grid', gap: '18px' },
-  monthCard: { borderRadius: '22px', padding: '18px', background: 'rgba(15,23,42,0.5)', border: '1px solid rgba(148,163,184,0.12)', display: 'grid', gap: '14px' },
+  monthCard: { borderRadius: '24px', padding: '20px', background: 'linear-gradient(180deg, rgba(16,24,41,0.68), rgba(13,21,37,0.52))', border: '1px solid rgba(148,163,184,0.12)', display: 'grid', gap: '14px' },
   monthHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap' },
   monthTitle: { margin: 0, color: '#e2e8f0', fontSize: '1.05rem', textTransform: 'capitalize' },
+  monthBadge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '999px', background: 'rgba(15,23,42,0.72)', border: '1px solid rgba(148,163,184,0.12)', color: '#d7f9ff', fontSize: '0.88rem', fontWeight: 700 },
   transactionList: { display: 'grid', gap: '12px' },
-  transactionItem: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '14px', padding: '16px', borderRadius: '18px', background: 'rgba(9,18,33,0.92)', border: '1px solid rgba(148,163,184,0.14)' },
+  transactionItem: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '14px', padding: '18px', borderRadius: '20px', background: 'rgba(9,18,33,0.92)', border: '1px solid rgba(148,163,184,0.14)' },
   transactionLeft: { display: 'flex', gap: '14px', alignItems: 'flex-start', minWidth: 0 },
-  iconBubble: { width: '44px', height: '44px', borderRadius: '14px', display: 'grid', placeItems: 'center', fontSize: '1.25rem', background: 'linear-gradient(135deg, rgba(37,99,235,0.24), rgba(20,184,166,0.16))', flexShrink: 0 },
+  iconBubble: { width: '48px', height: '48px', borderRadius: '16px', display: 'grid', placeItems: 'center', fontSize: '1.3rem', background: 'linear-gradient(135deg, rgba(37,99,235,0.24), rgba(20,184,166,0.16))', border: '1px solid rgba(125,211,252,0.12)', flexShrink: 0 },
   transactionTop: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
-  transactionTitle: { color: '#f8fafc', fontSize: '1rem' },
-  metaLine: { display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', color: '#94a3b8', fontSize: '0.85rem', marginTop: '8px' },
+  transactionTitle: { color: '#f8fafc', fontSize: '1rem', lineHeight: 1.35 },
+  metaLine: { display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', color: '#94a3b8', fontSize: '0.85rem', marginTop: '10px' },
   typePill: (income) => ({ display: 'inline-flex', alignItems: 'center', borderRadius: '999px', padding: '5px 10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', color: income ? '#86efac' : '#fca5a5', background: income ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.14)' }),
   transactionRight: { display: 'grid', justifyItems: 'end', alignContent: 'space-between', gap: '12px' },
-  amount: (income) => ({ color: income ? '#4ade80' : '#f87171', fontSize: '1rem' }),
+  amount: (income) => ({ color: income ? '#4ade80' : '#f87171', fontSize: '1.02rem', lineHeight: 1.2 }),
   actionRow: { display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' },
   smallButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
   deleteButton: { border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(127,29,29,0.2)', color: '#fca5a5', fontWeight: 600, cursor: 'pointer' },
