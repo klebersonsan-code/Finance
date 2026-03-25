@@ -203,35 +203,39 @@ function Dashboard(props) {
           </div>
 
           <div style={styles.balanceCard} className="premium-subcard">
-            <div style={styles.balanceTop}>
-              <div>
+            <div style={styles.balanceLayout} className="balance-layout">
+              <div style={styles.balanceMain}>
                 <span style={styles.balanceLabel}>Saldo disponivel</span>
                 <strong style={styles.balanceValue}>{formatCurrency(summary.saldo)}</strong>
+                <p style={styles.balanceCopy}>
+                  {'Acompanhe suas finan\u00E7as em tempo real, com seguran\u00E7a e praticidade.'}
+                </p>
               </div>
-              <span style={styles.syncPill(syncStatus)}>
-                {syncStatus === 'tempo real ativo' ? 'Ao vivo' : syncStatus}
-              </span>
-            </div>
-            <p style={styles.balanceCopy}>
-              {'Acompanhe suas finan\u00E7as em tempo real, com seguran\u00E7a e praticidade.'}
-            </p>
-            <div style={styles.quickActionRow}>
-              <button
-                type="button"
-                onClick={() => scrollToSection(formRef, 'adicionar')}
-                style={styles.primaryQuickAction}
-                className="interactive-button"
-              >
-                Nova transacao
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection(historyRef, 'historico')}
-                style={styles.secondaryQuickAction}
-                className="interactive-button"
-              >
-                Ver historico
-              </button>
+              <div style={styles.balanceSide}>
+                <div style={styles.balanceTop}>
+                  <span style={styles.syncPill(syncStatus)}>
+                    {syncStatus === 'tempo real ativo' ? 'Ao vivo' : syncStatus}
+                  </span>
+                </div>
+                <div style={styles.quickActionRow}>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(formRef, 'adicionar')}
+                    style={styles.primaryQuickAction}
+                    className="interactive-button"
+                  >
+                    Nova transacao
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(historyRef, 'historico')}
+                    style={styles.secondaryQuickAction}
+                    className="interactive-button"
+                  >
+                    Ver historico
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </header>
@@ -793,10 +797,13 @@ const styles = {
   appTitle: { margin: '8px 0 0', color: '#f8fafc', fontSize: '1.3rem', lineHeight: 1.1 },
   headerAction: { border: '1px solid rgba(148,163,184,0.16)', borderRadius: '14px', padding: '10px 14px', background: 'rgba(15,23,42,0.72)', color: '#e2e8f0', fontWeight: 700, cursor: 'pointer' },
   balanceCard: { ...cardBase, padding: '18px', background: 'linear-gradient(135deg, rgba(20,33,58,0.95), rgba(9,18,33,0.92))', border: '1px solid rgba(103,232,249,0.14)' },
-  balanceTop: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '14px' },
+  balanceLayout: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(220px, 0.8fr)', gap: '18px', alignItems: 'start' },
+  balanceMain: { display: 'grid', gap: '10px', maxWidth: '420px' },
+  balanceSide: { display: 'grid', gap: '14px', justifyItems: 'stretch' },
+  balanceTop: { display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', gap: '14px' },
   balanceLabel: { display: 'block', color: '#8fb4d8', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.12em' },
-  balanceValue: { display: 'block', marginTop: '10px', color: '#f8fafc', fontSize: '2.1rem', lineHeight: 1, letterSpacing: '-0.04em' },
-  balanceCopy: { margin: '14px 0 0', color: '#9ab0c8', lineHeight: 1.7, fontSize: '0.92rem', maxWidth: '320px' },
+  balanceValue: { display: 'block', marginTop: '6px', color: '#f8fafc', fontSize: '2.1rem', lineHeight: 1, letterSpacing: '-0.04em' },
+  balanceCopy: { margin: '0', color: '#9ab0c8', lineHeight: 1.7, fontSize: '0.92rem', maxWidth: '320px' },
   syncPill: (status) => ({
     display: 'inline-flex',
     alignItems: 'center',
@@ -825,7 +832,7 @@ const styles = {
           : '1px solid rgba(125,211,252,0.14)',
     textTransform: 'capitalize',
   }),
-  quickActionRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px' },
+  quickActionRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' },
   primaryQuickAction: { border: 'none', borderRadius: '16px', padding: '14px 16px', background: 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#eff6ff', fontWeight: 700, cursor: 'pointer' },
   secondaryQuickAction: { border: '1px solid rgba(148,163,184,0.16)', borderRadius: '16px', padding: '14px 16px', background: 'rgba(15,23,42,0.72)', color: '#dce9f8', fontWeight: 700, cursor: 'pointer' },
   alert: { ...cardBase, padding: '14px 16px', background: 'rgba(127,29,29,0.18)', color: '#fca5a5' },

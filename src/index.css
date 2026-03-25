@@ -306,6 +306,10 @@ select:focus {
     gap: 18px !important;
   }
 
+  .balance-layout {
+    grid-template-columns: 1fr !important;
+  }
+
   .dashboard-chart-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
