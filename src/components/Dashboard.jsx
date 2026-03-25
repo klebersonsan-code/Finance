@@ -184,7 +184,7 @@ function Dashboard(props) {
             <span style={styles.heroPill}>Visao premium do seu fluxo financeiro</span>
             <h1 style={styles.title}>Controle suas entradas e saidas com foco</h1>
             <p style={styles.subtitle} className="hero-subtitle">
-              Dados sincronizados com Supabase em tempo real e separados por usuario.
+              Acompanhe suas finanças em tempo real, com segurança e praticidade.
             </p>
             <div style={styles.heroStats} className="hero-stats">
               <div style={styles.heroStat}>
@@ -711,16 +711,16 @@ const styles = {
       'radial-gradient(circle at top, rgba(59,130,246,0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(16,185,129,0.12), transparent 28%), #07111f',
   },
   container: { maxWidth: '1180px', margin: '0 auto', display: 'grid', gap: '26px' },
-  hero: { ...cardBase, display: 'flex', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap', padding: '32px' },
+  hero: { ...cardBase, display: 'flex', justifyContent: 'space-between', gap: '30px', flexWrap: 'wrap', padding: '36px', alignItems: 'flex-start' },
   kicker: { color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '12px', fontWeight: 700 },
-  heroPill: { display: 'inline-flex', alignItems: 'center', width: 'fit-content', marginTop: '14px', padding: '9px 14px', borderRadius: '999px', background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(125,211,252,0.14)', color: '#cbe9ff', fontSize: '0.84rem', fontWeight: 600 },
-  title: { margin: '18px 0 0', color: '#f8fafc', fontSize: 'clamp(2.5rem, 5vw, 4.4rem)', lineHeight: 0.96, maxWidth: '700px' },
-  subtitle: { margin: '16px 0 0', color: '#94a3b8', lineHeight: 1.8, maxWidth: '700px', fontSize: '1.02rem' },
-  heroStats: { display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '22px' },
+  heroPill: { display: 'inline-flex', alignItems: 'center', width: 'fit-content', marginTop: '16px', padding: '9px 14px', borderRadius: '999px', background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(125,211,252,0.14)', color: '#cbe9ff', fontSize: '0.84rem', fontWeight: 600 },
+  title: { margin: '22px 0 0', color: '#f8fafc', fontSize: 'clamp(2.5rem, 5vw, 4.4rem)', lineHeight: 0.96, maxWidth: '560px' },
+  subtitle: { margin: '20px 0 0', color: '#94a3b8', lineHeight: 1.85, maxWidth: '520px', fontSize: '1.02rem' },
+  heroStats: { display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '28px', maxWidth: '520px' },
   heroStat: { display: 'grid', gap: '6px', minWidth: '160px', padding: '14px 16px', borderRadius: '18px', background: 'rgba(15, 23, 42, 0.58)', border: '1px solid rgba(148,163,184,0.12)' },
   heroStatLabel: { color: '#7f93b3', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.12em' },
   heroStatValue: { color: '#eff6ff', fontSize: '1rem' },
-  heroSide: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', alignSelf: 'flex-start' },
+  heroSide: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', alignSelf: 'flex-start', paddingTop: '6px' },
   userBox: { ...cardBase, padding: '14px 16px', background: 'rgba(15, 23, 42, 0.82)' },
   userLabel: { display: 'block', fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em' },
   userValue: { color: '#e2e8f0', fontSize: '0.9rem' },
