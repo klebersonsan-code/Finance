@@ -259,6 +259,11 @@ select:focus {
 
   .dashboard-content-grid {
     grid-template-columns: 1fr !important;
+    order: 4;
+  }
+
+  .dashboard-chart-grid {
+    order: 5;
   }
 
   .dashboard-sidebar,
@@ -403,6 +408,11 @@ select:focus {
   .dashboard-content-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
+    order: 4;
+  }
+
+  .dashboard-chart-grid {
+    order: 5;
   }
 
   .dashboard-history,

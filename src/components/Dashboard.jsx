@@ -248,7 +248,7 @@ function Dashboard(props) {
           />
         </section>
 
-        <section style={styles.grid2}>
+        <section style={styles.grid2} className="dashboard-chart-grid">
           <div style={styles.card} className="premium-card fade-up">
             <div style={styles.cardHeader}>
               <div>
