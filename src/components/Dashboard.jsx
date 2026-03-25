@@ -47,6 +47,9 @@ function Dashboard(props) {
   const formRef = useRef(null)
   const historyRef = useRef(null)
   const chartsRef = useRef(null)
+  const sheetRef = useRef(null)
+  const descriptionInputRef = useRef(null)
+  const lastFocusedRef = useRef(null)
 
   const monthOptions = useMemo(
     () =>
@@ -127,18 +130,48 @@ function Dashboard(props) {
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    lastFocusedRef.current = document.activeElement
 
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
         setIsFormSheetOpen(false)
+        return
+      }
+
+      if (event.key === 'Tab' && sheetRef.current) {
+        const focusableElements = sheetRef.current.querySelectorAll(
+          'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])',
+        )
+        const focusable = Array.from(focusableElements).filter(
+          (element) => !element.hasAttribute('disabled'),
+        )
+
+        if (focusable.length === 0) return
+
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first.focus()
+        }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
+    window.requestAnimationFrame(() => {
+      descriptionInputRef.current?.focus()
+    })
 
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
+      if (lastFocusedRef.current instanceof HTMLElement) {
+        lastFocusedRef.current.focus()
+      }
     }
   }, [isFormSheetOpen])
 
@@ -220,12 +253,15 @@ function Dashboard(props) {
       onSubmit={handleSubmit}
       style={styles.formCard}
       className="premium-card transaction-form-card transaction-sheet-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="transaction-sheet-title"
     >
       <div style={styles.sheetHandle} className="sheet-handle" />
       <div style={styles.cardHeader}>
         <div>
           <span style={styles.formEyebrow}>Movimentacao</span>
-          <h2 style={styles.cardTitle}>
+          <h2 id="transaction-sheet-title" style={styles.cardTitle}>
             {editingId ? 'Editar transacao' : 'Nova transacao'}
           </h2>
           <p style={styles.cardSubtitle}>
@@ -265,6 +301,7 @@ function Dashboard(props) {
 
       <Field label="Descricao">
         <input
+          ref={descriptionInputRef}
           name="description"
           value={form.description}
           onChange={handleChange}
@@ -398,10 +435,18 @@ function Dashboard(props) {
         {error ? <div style={styles.alert} className="premium-card fade-up">{error}</div> : null}
         {notice ? (
           <div
-            style={notice.type === 'success' ? styles.successAlert : styles.warningAlert}
-            className="premium-card fade-up"
+            style={notice.type === 'success' ? styles.toastSuccess : styles.toastWarning}
+            className="premium-card toast-card"
+            role="status"
+            aria-live="polite"
           >
-            {notice.message}
+            <span style={styles.toastIcon}>{notice.type === 'success' ? '✓' : '!'}</span>
+            <div style={styles.toastContent}>
+              <strong style={styles.toastTitle}>
+                {notice.type === 'success' ? 'Transacao atualizada' : 'Algo precisa de atencao'}
+              </strong>
+              <span style={styles.toastMessage}>{notice.message}</span>
+            </div>
           </div>
         ) : null}
 
@@ -695,7 +740,11 @@ function Dashboard(props) {
                       {items.map((item) => {
                         const category = getCategoryMeta(item.type, item.category)
                         return (
-                          <article key={item.id} style={styles.transactionItem} className="transaction-card">
+                          <article
+                            key={item.id}
+                            style={styles.transactionItem}
+                            className="transaction-card list-item-rise"
+                          >
                             <div style={styles.transactionLeft}>
                               <div style={styles.iconBubble}>{category.icon}</div>
                               <div>
@@ -782,10 +831,11 @@ function Dashboard(props) {
             onClick={closeTransactionSheet}
           >
             <div
-              style={styles.sheetWrapper}
-              className="sheet-wrapper"
-              onClick={(event) => event.stopPropagation()}
-            >
+            style={styles.sheetWrapper}
+            className="sheet-wrapper"
+            ref={sheetRef}
+            onClick={(event) => event.stopPropagation()}
+          >
               {transactionForm}
             </div>
           </div>
@@ -997,6 +1047,13 @@ const styles = {
     border: '1px solid rgba(248, 113, 113, 0.18)',
     color: '#fecaca',
   },
+  toastBase: { position: 'fixed', top: '22px', right: '22px', width: 'min(380px, calc(100vw - 28px))', display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: '14px', alignItems: 'start', padding: '16px 18px', zIndex: 55, backdropFilter: 'blur(18px)', boxShadow: '0 26px 64px rgba(2, 6, 23, 0.42)' },
+  toastSuccess: { ...cardBase, position: 'fixed', top: '22px', right: '22px', width: 'min(380px, calc(100vw - 28px))', display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: '14px', alignItems: 'start', padding: '16px 18px', zIndex: 55, background: 'rgba(6, 95, 70, 0.2)', border: '1px solid rgba(52, 211, 153, 0.2)', color: '#d1fae5', backdropFilter: 'blur(18px)', boxShadow: '0 26px 64px rgba(2, 6, 23, 0.42)' },
+  toastWarning: { ...cardBase, position: 'fixed', top: '22px', right: '22px', width: 'min(380px, calc(100vw - 28px))', display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: '14px', alignItems: 'start', padding: '16px 18px', zIndex: 55, background: 'rgba(127,29,29,0.22)', border: '1px solid rgba(248, 113, 113, 0.2)', color: '#fee2e2', backdropFilter: 'blur(18px)', boxShadow: '0 26px 64px rgba(2, 6, 23, 0.42)' },
+  toastIcon: { width: '34px', height: '34px', borderRadius: '12px', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,0.08)', color: 'currentColor', fontWeight: 800, fontSize: '1rem', flexShrink: 0 },
+  toastContent: { display: 'grid', gap: '4px', minWidth: 0 },
+  toastTitle: { color: '#f8fafc', fontSize: '0.95rem', lineHeight: 1.2 },
+  toastMessage: { color: 'inherit', fontSize: '0.9rem', lineHeight: 1.55 },
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '14px' },
   statCard: { ...cardBase, padding: '18px', display: 'grid', gap: '10px', background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))', minHeight: '112px' },
   statLabel: { color: '#7f93b3', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.1em' },

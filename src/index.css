@@ -186,6 +186,10 @@ select:focus {
   background: rgba(12, 22, 40, 0.98) !important;
 }
 
+.list-item-rise {
+  animation: list-rise 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 .transaction-form-card {
   position: relative;
 }
@@ -224,6 +228,16 @@ select:focus {
 
 .transaction-sheet-card {
   margin: 0;
+}
+
+.toast-card {
+  animation:
+    toast-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    toast-glow 2.2s ease-in-out infinite alternate;
+}
+
+.toast-card:hover {
+  transform: translateY(-2px);
 }
 
 .month-card {
@@ -339,6 +353,42 @@ select:focus {
   from {
     opacity: 0;
     transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-glow {
+  from {
+    box-shadow: 0 24px 56px rgba(2, 6, 23, 0.36);
+  }
+
+  to {
+    box-shadow:
+      0 28px 72px rgba(2, 6, 23, 0.46),
+      0 0 0 1px rgba(125, 211, 252, 0.04);
+  }
+}
+
+@keyframes list-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
 
   to {
@@ -616,6 +666,13 @@ select:focus {
   .transaction-sheet-card {
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
+  }
+
+  .toast-card {
+    top: 14px !important;
+    right: 14px !important;
+    left: 14px !important;
+    width: auto !important;
   }
 
   .dashboard-shell div[style*='place-items: center'] {
