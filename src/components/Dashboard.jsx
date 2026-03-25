@@ -340,9 +340,10 @@ function Dashboard(props) {
 
         <section style={styles.contentGrid} className="dashboard-content-grid">
           <aside style={styles.sidebar} className="dashboard-sidebar">
-            <form onSubmit={handleSubmit} style={styles.card} className="premium-card fade-up">
+            <form onSubmit={handleSubmit} style={styles.formCard} className="premium-card fade-up transaction-form-card">
               <div style={styles.cardHeader}>
                 <div>
+                  <span style={styles.formEyebrow}>Movimentacao</span>
                   <h2 style={styles.cardTitle}>
                     {editingId ? 'Editar transacao' : 'Nova transacao'}
                   </h2>
@@ -748,7 +749,9 @@ const styles = {
   contentGrid: { display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) minmax(0, 1fr)', gap: '20px', alignItems: 'start' },
   sidebar: { display: 'grid', gap: '20px' },
   card: { ...cardBase, padding: '26px', display: 'grid', gap: '20px', background: 'linear-gradient(180deg, rgba(11,20,36,0.96), rgba(9,18,33,0.88))' },
+  formCard: { ...cardBase, padding: '28px', display: 'grid', gap: '22px', background: 'linear-gradient(180deg, rgba(13,25,45,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(103,232,249,0.12)', boxShadow: '0 28px 70px rgba(2, 6, 23, 0.42)' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' },
+  formEyebrow: { display: 'inline-block', marginBottom: '10px', color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.72rem', fontWeight: 700 },
   cardTitle: { margin: 0, color: '#f8fafc', fontSize: '1.24rem', lineHeight: 1.2 },
   cardSubtitle: { margin: '8px 0 0', color: '#7f93b3', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: '460px' },
   filterSummary: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
