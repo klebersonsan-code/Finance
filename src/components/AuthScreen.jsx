@@ -36,14 +36,17 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
           <span style={styles.kickerBadge}>Seu controle financeiro, elevado</span>
           <h1 style={styles.title}>Finance Pro</h1>
           <p style={styles.subtitle}>
-            Gerencie suas financas de forma simples e inteligente. Acompanhe
-            receitas, despesas e tome decisoes financeiras melhores.
+            {
+              'Gerencie suas financas de forma simples e inteligente. Acompanhe receitas, despesas e tome decis\u00F5es financeiras melhores.'
+            }
           </p>
 
           <div style={styles.featureList}>
             <div style={styles.featureItem}>
               <span style={styles.featureDot} />
-              <span style={styles.featureText}>Visão clara das suas movimentações</span>
+              <span style={styles.featureText}>
+                {'Vis\u00E3o clara das suas movimenta\u00E7\u00F5es'}
+              </span>
             </div>
             <div style={styles.featureItem}>
               <span style={styles.featureDot} />
