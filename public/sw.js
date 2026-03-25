@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-flow-v1'
+const CACHE_NAME = 'finance-flow-v2'
 const APP_SHELL = ['/', '/manifest.json', '/app-icon.svg', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
@@ -38,6 +38,27 @@ self.addEventListener('fetch', (event) => {
           return response
         })
         .catch(() => caches.match('/')),
+    )
+    return
+  }
+
+  if (
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    request.destination === 'worker'
+  ) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response
+          }
+
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          return response
+        })
+        .catch(() => caches.match(request)),
     )
     return
   }
