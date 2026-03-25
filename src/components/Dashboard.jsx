@@ -179,14 +179,14 @@ function Dashboard(props) {
     <main style={styles.page} className="dashboard-shell">
       <section style={styles.container} className="dashboard-container">
         <header style={styles.hero} className="premium-card hero-card fade-up">
-          <div>
+          <div className="hero-main">
             <span style={styles.kicker}>Dashboard Financeiro</span>
             <span style={styles.heroPill}>Visao premium do seu fluxo financeiro</span>
             <h1 style={styles.title}>Controle suas entradas e saidas com foco</h1>
-            <p style={styles.subtitle}>
+            <p style={styles.subtitle} className="hero-subtitle">
               Dados sincronizados com Supabase em tempo real e separados por usuario.
             </p>
-            <div style={styles.heroStats}>
+            <div style={styles.heroStats} className="hero-stats">
               <div style={styles.heroStat}>
                 <span style={styles.heroStatLabel}>Transacoes</span>
                 <strong style={styles.heroStatValue}>{transactions.length}</strong>
@@ -200,12 +200,12 @@ function Dashboard(props) {
             </div>
           </div>
 
-          <div style={styles.heroSide}>
-            <div style={styles.userBox} className="premium-subcard">
+          <div style={styles.heroSide} className="hero-side">
+            <div style={styles.userBox} className="premium-subcard user-session-card">
               <span style={styles.userLabel}>Sessao</span>
               <strong style={styles.userValue}>{user.email}</strong>
             </div>
-            <button type="button" onClick={onSignOut} style={styles.secondaryButton} className="interactive-button">
+            <button type="button" onClick={onSignOut} style={styles.secondaryButton} className="interactive-button signout-button">
               Sair
             </button>
           </div>
@@ -221,7 +221,7 @@ function Dashboard(props) {
           </div>
         ) : null}
 
-        <section style={styles.grid4}>
+        <section style={styles.grid4} className="summary-grid">
           <StatCard
             label="Saldo filtrado"
             value={formatCurrency(summary.saldo)}

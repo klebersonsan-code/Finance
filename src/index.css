@@ -242,6 +242,11 @@ select:focus {
     padding-right: 14px;
   }
 
+  .hero-card {
+    padding: 24px !important;
+    gap: 18px !important;
+  }
+
   .dashboard-shell section[style],
   .dashboard-shell header[style] {
     border-radius: 22px !important;
@@ -275,6 +280,11 @@ select:focus {
     font-size: 15px;
   }
 
+  .dashboard-shell {
+    padding-top: 18px !important;
+    padding-bottom: 28px !important;
+  }
+
   .dashboard-shell,
   .auth-shell {
     overflow-x: hidden;
@@ -292,6 +302,71 @@ select:focus {
   .auth-shell section[style] {
     padding-left: 18px !important;
     padding-right: 18px !important;
+  }
+
+  .hero-card {
+    padding: 20px !important;
+    gap: 16px !important;
+  }
+
+  .hero-main h1 {
+    font-size: 2.55rem !important;
+    max-width: 320px !important;
+    margin-top: 14px !important;
+  }
+
+  .hero-main .hero-subtitle {
+    font-size: 0.92rem !important;
+    line-height: 1.65 !important;
+    margin-top: 12px !important;
+    max-width: none !important;
+  }
+
+  .hero-main .hero-stats {
+    margin-top: 16px !important;
+    gap: 10px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .hero-main .hero-stats > div {
+    min-width: 0 !important;
+    padding: 12px 13px !important;
+  }
+
+  .hero-side {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .hero-side .user-session-card {
+    min-width: 0 !important;
+    padding: 12px 14px !important;
+  }
+
+  .hero-side .user-session-card strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hero-side .signout-button {
+    width: auto !important;
+    min-width: 96px;
+    padding: 12px 14px !important;
+    align-self: stretch;
+  }
+
+  .summary-grid {
+    gap: 12px !important;
+  }
+
+  .summary-grid article[style] {
+    padding: 18px !important;
   }
 
   .dashboard-shell div[style*='grid-template-columns: repeat(2'] {
@@ -322,6 +397,21 @@ select:focus {
   .dashboard-shell div[style*='justify-content: space-between'],
   .auth-shell div[style*='justify-content: space-between'] {
     align-items: flex-start !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-main h1 {
+    font-size: 2.2rem !important;
+    max-width: 280px !important;
+  }
+
+  .hero-main .hero-subtitle {
+    display: none !important;
+  }
+
+  .hero-main .hero-stats {
+    grid-template-columns: 1fr 1fr !important;
   }
 }
 
