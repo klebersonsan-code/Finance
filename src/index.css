@@ -98,6 +98,20 @@ select:focus {
   box-shadow: 0 16px 28px rgba(2, 6, 23, 0.24);
 }
 
+.primary-cta:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 18px 32px rgba(2, 6, 23, 0.3),
+    0 0 0 1px rgba(125, 211, 252, 0.08);
+}
+
+.secondary-cta:hover {
+  transform: translateY(-2px);
+  background: rgba(20, 33, 58, 0.96) !important;
+  border-color: rgba(125, 211, 252, 0.28) !important;
+  box-shadow: 0 16px 30px rgba(2, 6, 23, 0.24);
+}
+
 .interactive-button:focus-visible {
   outline: 2px solid rgba(103, 232, 249, 0.75);
   outline-offset: 3px;
@@ -200,6 +214,18 @@ select:focus {
   pointer-events: none;
 }
 
+.sheet-overlay {
+  animation: overlay-fade 240ms ease both;
+}
+
+.sheet-wrapper {
+  animation: modal-rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.transaction-sheet-card {
+  margin: 0;
+}
+
 .month-card {
   transition:
     transform 220ms ease,
@@ -287,6 +313,40 @@ select:focus {
   }
 }
 
+@keyframes overlay-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 960px) {
   .dashboard-container,
   .auth-shell section {
@@ -365,6 +425,17 @@ select:focus {
   .dashboard-chart-grid {
     order: 5;
     grid-template-columns: 1fr !important;
+  }
+
+  .sheet-overlay {
+    padding: 16px !important;
+    align-items: end !important;
+  }
+
+  .sheet-wrapper {
+    width: min(100%, 480px) !important;
+    max-height: min(82vh, 720px) !important;
+    animation-name: sheet-up !important;
   }
 
   .dashboard-sidebar,
@@ -531,6 +602,20 @@ select:focus {
   .dashboard-chart-grid div[style*='height: 300px'] {
     height: 260px !important;
     min-height: 260px !important;
+  }
+
+  .sheet-overlay {
+    padding: 10px 10px 18px !important;
+  }
+
+  .sheet-wrapper {
+    width: 100% !important;
+    max-height: calc(100vh - 20px) !important;
+  }
+
+  .transaction-sheet-card {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
   }
 
   .dashboard-shell div[style*='place-items: center'] {

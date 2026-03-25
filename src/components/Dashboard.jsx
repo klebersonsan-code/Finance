@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -39,6 +39,7 @@ function Dashboard(props) {
 
   const [form, setForm] = useState(createFormInitialState)
   const [editingId, setEditingId] = useState(null)
+  const [isFormSheetOpen, setIsFormSheetOpen] = useState(false)
   const [typeFilter, setTypeFilter] = useState('todos')
   const [monthFilter, setMonthFilter] = useState('todos')
   const [activeTab, setActiveTab] = useState('inicio')
@@ -121,9 +122,39 @@ function Dashboard(props) {
     return Object.values(grouped).sort((a, b) => b.value - a.value)
   }, [filteredTransactions])
 
+  useEffect(() => {
+    if (!isFormSheetOpen) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsFormSheetOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isFormSheetOpen])
+
   function resetForm() {
     setForm(createFormInitialState())
     setEditingId(null)
+  }
+
+  function openTransactionSheet() {
+    setActiveTab('adicionar')
+    setIsFormSheetOpen(true)
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function closeTransactionSheet() {
+    setIsFormSheetOpen(false)
   }
 
   function handleChange(event) {
@@ -153,7 +184,10 @@ function Dashboard(props) {
       date: form.date,
     })
 
-    if (success) resetForm()
+    if (success) {
+      resetForm()
+      closeTransactionSheet()
+    }
   }
 
   function handleEdit(item) {
@@ -165,6 +199,8 @@ function Dashboard(props) {
       category: item.category,
       date: item.date,
     })
+    setActiveTab('adicionar')
+    setIsFormSheetOpen(true)
   }
 
   async function handleDelete(id) {
@@ -178,6 +214,125 @@ function Dashboard(props) {
     setActiveTab(tab)
     section.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+
+  const transactionForm = (
+    <form
+      onSubmit={handleSubmit}
+      style={styles.formCard}
+      className="premium-card transaction-form-card transaction-sheet-card"
+    >
+      <div style={styles.sheetHandle} className="sheet-handle" />
+      <div style={styles.cardHeader}>
+        <div>
+          <span style={styles.formEyebrow}>Movimentacao</span>
+          <h2 style={styles.cardTitle}>
+            {editingId ? 'Editar transacao' : 'Nova transacao'}
+          </h2>
+          <p style={styles.cardSubtitle}>
+            {editingId
+              ? 'Atualize os detalhes da movimentacao selecionada.'
+              : 'Adicione uma nova movimentacao ao seu painel.'}
+          </p>
+        </div>
+        <div style={styles.sheetHeaderActions}>
+          {editingId ? (
+            <button
+              type="button"
+              onClick={() => {
+                resetForm()
+                closeTransactionSheet()
+              }}
+              style={styles.ghostButton}
+              className="interactive-button"
+            >
+              Cancelar
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              if (!editingId) resetForm()
+              closeTransactionSheet()
+            }}
+            style={styles.closeButton}
+            className="interactive-button"
+            aria-label="Fechar formulario"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+
+      <Field label="Descricao">
+        <input
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          placeholder="Ex.: Mercado, salario, internet"
+          style={styles.input}
+        />
+      </Field>
+
+      <div style={styles.row}>
+        <Field label="Valor">
+          <input
+            name="amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={form.amount}
+            onChange={handleChange}
+            placeholder="0,00"
+            style={styles.input}
+          />
+        </Field>
+        <Field label="Tipo">
+          <select name="type" value={form.type} onChange={handleChange} style={styles.input}>
+            <option value="receita">Receita</option>
+            <option value="despesa">Despesa</option>
+          </select>
+        </Field>
+      </div>
+
+      <div style={styles.row}>
+        <Field label="Categoria">
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            style={styles.input}
+          >
+            {currentCategories.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.icon} {category.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Data">
+          <input
+            name="date"
+            type="date"
+            value={form.date}
+            onChange={handleChange}
+            style={styles.input}
+          />
+        </Field>
+      </div>
+
+      <button
+        type="submit"
+        style={styles.primaryButton(savingTransaction)}
+        className="interactive-button"
+      >
+        {savingTransaction
+          ? 'Salvando...'
+          : editingId
+            ? 'Salvar alteracoes'
+            : 'Salvar transacao'}
+      </button>
+    </form>
+  )
 
   return (
     <main style={styles.page} className="dashboard-shell">
@@ -220,9 +375,9 @@ function Dashboard(props) {
                 <div style={styles.quickActionRow}>
                   <button
                     type="button"
-                    onClick={() => scrollToSection(formRef, 'adicionar')}
+                    onClick={openTransactionSheet}
                     style={styles.primaryQuickAction}
-                    className="interactive-button"
+                    className="interactive-button primary-cta"
                   >
                     Nova transacao
                   </button>
@@ -230,7 +385,7 @@ function Dashboard(props) {
                     type="button"
                     onClick={() => scrollToSection(historyRef, 'historico')}
                     style={styles.secondaryQuickAction}
-                    className="interactive-button"
+                    className="interactive-button secondary-cta"
                   >
                     Ver historico
                   </button>
@@ -369,70 +524,46 @@ function Dashboard(props) {
 
         <section style={styles.contentGrid} className="dashboard-content-grid">
           <aside style={styles.sidebar} className="dashboard-sidebar">
-            <form
+            <section
               ref={formRef}
-              onSubmit={handleSubmit}
-              style={styles.formCard}
+              style={styles.formLauncherCard}
               className="premium-card fade-up transaction-form-card"
             >
               <div style={styles.cardHeader}>
                 <div>
                   <span style={styles.formEyebrow}>Movimentacao</span>
-                  <h2 style={styles.cardTitle}>
-                    {editingId ? 'Editar transacao' : 'Nova transacao'}
-                  </h2>
+                  <h2 style={styles.cardTitle}>Nova transacao</h2>
                   <p style={styles.cardSubtitle}>
-                    {editingId
-                      ? 'Atualize os detalhes da movimentacao selecionada.'
-                      : 'Adicione uma nova movimentacao ao seu painel.'}
+                    Abra um fluxo rapido para registrar receitas e despesas sem sair
+                    da tela principal.
                   </p>
                 </div>
-                {editingId ? (
-                  <button type="button" onClick={resetForm} style={styles.ghostButton} className="interactive-button">
-                    Cancelar
-                  </button>
-                ) : null}
               </div>
 
-              <Field label="Descricao">
-                <input name="description" value={form.description} onChange={handleChange} placeholder="Ex.: Mercado, salario, internet" style={styles.input} />
-              </Field>
-
-              <div style={styles.row}>
-                <Field label="Valor">
-                  <input name="amount" type="number" min="0.01" step="0.01" value={form.amount} onChange={handleChange} placeholder="0,00" style={styles.input} />
-                </Field>
-                <Field label="Tipo">
-                  <select name="type" value={form.type} onChange={handleChange} style={styles.input}>
-                    <option value="receita">Receita</option>
-                    <option value="despesa">Despesa</option>
-                  </select>
-                </Field>
+              <div style={styles.formLauncherBody}>
+                <div style={styles.formLauncherPreview}>
+                  <span style={styles.formLauncherBadge}>
+                    {editingId ? 'Edicao pronta' : 'Fluxo rapido'}
+                  </span>
+                  <strong style={styles.formLauncherTitle}>
+                    {editingId
+                      ? 'Continue a edicao da transacao selecionada'
+                      : 'Adicione uma movimentacao em poucos toques'}
+                  </strong>
+                  <p style={styles.formLauncherText}>
+                    Categoria, valor e data ficam organizados em um modal com foco total.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openTransactionSheet}
+                  style={styles.launcherButton}
+                  className="interactive-button primary-cta"
+                >
+                  {editingId ? 'Continuar edicao' : 'Nova transacao'}
+                </button>
               </div>
-
-              <div style={styles.row}>
-                <Field label="Categoria">
-                  <select name="category" value={form.category} onChange={handleChange} style={styles.input}>
-                    {currentCategories.map((category) => (
-                      <option key={category.value} value={category.value}>
-                        {category.icon} {category.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Data">
-                  <input name="date" type="date" value={form.date} onChange={handleChange} style={styles.input} />
-                </Field>
-              </div>
-
-              <button type="submit" style={styles.primaryButton(savingTransaction)} className="interactive-button">
-                {savingTransaction
-                  ? 'Salvando...'
-                  : editingId
-                    ? 'Salvar alteracoes'
-                    : 'Salvar transacao'}
-              </button>
-            </form>
+            </section>
 
             <section style={styles.card} className="premium-card fade-up">
               <div style={styles.cardHeader}>
@@ -606,7 +737,7 @@ function Dashboard(props) {
 
         <button
           type="button"
-          onClick={() => scrollToSection(formRef, 'adicionar')}
+          onClick={openTransactionSheet}
           style={styles.fabButton}
           className="interactive-button app-fab"
         >
@@ -630,7 +761,7 @@ function Dashboard(props) {
           </button>
           <button
             type="button"
-            onClick={() => scrollToSection(formRef, 'adicionar')}
+            onClick={openTransactionSheet}
             style={styles.navButton(activeTab === 'adicionar')}
           >
             <span style={styles.navIcon}>Adicionar</span>
@@ -643,6 +774,22 @@ function Dashboard(props) {
             <span style={styles.navIcon}>Analises</span>
           </button>
         </nav>
+
+        {isFormSheetOpen ? (
+          <div
+            style={styles.sheetOverlay}
+            className="sheet-overlay"
+            onClick={closeTransactionSheet}
+          >
+            <div
+              style={styles.sheetWrapper}
+              className="sheet-wrapper"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {transactionForm}
+            </div>
+          </div>
+        ) : null}
       </section>
     </main>
   )
@@ -851,16 +998,25 @@ const styles = {
     color: '#fecaca',
   },
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '14px' },
-  statCard: { ...cardBase, padding: '16px', display: 'grid', gap: '8px', background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))', minHeight: '104px' },
-  statLabel: { color: '#94a3b8', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  statCard: { ...cardBase, padding: '18px', display: 'grid', gap: '10px', background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))', minHeight: '112px' },
+  statLabel: { color: '#7f93b3', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.1em' },
   statValue: { color: '#67e8f9', fontSize: '1.28rem', lineHeight: 1.1 },
   grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '20px' },
   contentGrid: { display: 'grid', gridTemplateColumns: 'minmax(320px, 400px) minmax(0, 1fr)', gap: '20px', alignItems: 'start' },
   sidebar: { display: 'grid', gap: '20px' },
   card: { ...cardBase, padding: '22px', display: 'grid', gap: '18px', background: 'linear-gradient(180deg, rgba(11,20,36,0.96), rgba(9,18,33,0.88))' },
   formCard: { ...cardBase, padding: '28px', display: 'grid', gap: '22px', background: 'linear-gradient(180deg, rgba(13,25,45,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(103,232,249,0.12)', boxShadow: '0 28px 70px rgba(2, 6, 23, 0.42)' },
+  formLauncherCard: { ...cardBase, padding: '24px', display: 'grid', gap: '18px', background: 'linear-gradient(180deg, rgba(13,25,45,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(103,232,249,0.12)', boxShadow: '0 28px 70px rgba(2, 6, 23, 0.32)' },
+  formLauncherBody: { display: 'grid', gap: '16px' },
+  formLauncherPreview: { display: 'grid', gap: '10px', padding: '18px', borderRadius: '20px', background: 'linear-gradient(180deg, rgba(8,16,31,0.72), rgba(11,20,36,0.4))', border: '1px solid rgba(148,163,184,0.1)' },
+  formLauncherBadge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content', padding: '7px 11px', borderRadius: '999px', background: 'rgba(37,99,235,0.16)', border: '1px solid rgba(125,211,252,0.14)', color: '#cbe9ff', fontSize: '0.78rem', fontWeight: 700 },
+  formLauncherTitle: { color: '#f8fafc', fontSize: '1rem', lineHeight: 1.35 },
+  formLauncherText: { color: '#8ea1bf', fontSize: '0.9rem', lineHeight: 1.7 },
+  launcherButton: { border: 'none', borderRadius: '18px', padding: '15px 18px', background: 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#eff6ff', fontWeight: 700, cursor: 'pointer', boxShadow: '0 20px 40px rgba(2, 6, 23, 0.24)' },
   historyCard: { ...cardBase, padding: '28px', display: 'grid', gap: '22px', background: 'linear-gradient(180deg, rgba(12,22,40,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(148,163,184,0.14)', boxShadow: '0 26px 64px rgba(2, 6, 23, 0.38)' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' },
+  sheetHeaderActions: { display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' },
+  sheetHandle: { width: '56px', height: '5px', borderRadius: '999px', background: 'rgba(148,163,184,0.32)', margin: '0 auto 4px' },
   formEyebrow: { display: 'inline-block', marginBottom: '10px', color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.72rem', fontWeight: 700 },
   historyEyebrow: { display: 'inline-block', marginBottom: '10px', color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.72rem', fontWeight: 700 },
   cardTitle: { margin: 0, color: '#f8fafc', fontSize: '1.24rem', lineHeight: 1.2 },
@@ -911,6 +1067,7 @@ const styles = {
   input: { width: '100%', boxSizing: 'border-box', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '14px', padding: '13px 14px', fontSize: '0.98rem', color: '#f8fafc', background: 'rgba(15,23,42,0.82)', outline: 'none' },
   primaryButton: (busy) => ({ border: 'none', borderRadius: '16px', padding: '14px 18px', background: busy ? 'rgba(51,65,85,0.92)' : 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#eff6ff', fontWeight: 700, cursor: busy ? 'wait' : 'pointer' }),
   ghostButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '12px', padding: '10px 14px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
+  closeButton: { border: '1px solid rgba(148,163,184,0.18)', borderRadius: '12px', padding: '10px 14px', background: 'rgba(8,16,31,0.76)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
   muted: { margin: '8px 0 0', color: '#64748b', fontSize: '0.92rem', lineHeight: 1.6 },
   badge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '999px', background: 'rgba(37,99,235,0.18)', color: '#93c5fd', fontSize: '0.84rem', fontWeight: 700, textTransform: 'capitalize', border: '1px solid rgba(125,211,252,0.12)' },
   syncBadgeDefault: {
@@ -1013,6 +1170,8 @@ const styles = {
   actionRow: { display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' },
   smallButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
   deleteButton: { border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(127,29,29,0.2)', color: '#fca5a5', fontWeight: 600, cursor: 'pointer' },
+  sheetOverlay: { position: 'fixed', inset: 0, padding: '24px', background: 'rgba(2, 6, 23, 0.64)', backdropFilter: 'blur(12px)', display: 'grid', alignItems: 'center', justifyItems: 'center', zIndex: 40 },
+  sheetWrapper: { width: 'min(560px, 100%)', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', padding: 0 },
   fabButton: { position: 'fixed', right: 'max(18px, calc(50% - 222px))', bottom: '90px', width: '56px', height: '56px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#fff', fontSize: '2rem', lineHeight: 1, boxShadow: '0 20px 40px rgba(2, 6, 23, 0.35)', cursor: 'pointer', zIndex: 25 },
   bottomNav: { position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: '18px', width: 'min(460px, calc(100% - 24px))', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', padding: '10px', borderRadius: '24px', background: 'rgba(8,16,31,0.92)', border: '1px solid rgba(148,163,184,0.14)', backdropFilter: 'blur(18px)', boxShadow: '0 20px 40px rgba(2, 6, 23, 0.45)', zIndex: 20 },
   navButton: (active) => ({ border: 'none', borderRadius: '16px', padding: '12px 8px', background: active ? 'rgba(37,99,235,0.18)' : 'transparent', color: active ? '#eff6ff' : '#8ea1bf', fontWeight: 700, cursor: 'pointer' }),
