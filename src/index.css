@@ -186,6 +186,20 @@ select:focus {
   pointer-events: none;
 }
 
+.dashboard-history {
+  position: relative;
+}
+
+.dashboard-history::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(147, 197, 253, 0.4), transparent 72%);
+  pointer-events: none;
+}
+
 .month-card {
   transition:
     transform 220ms ease,

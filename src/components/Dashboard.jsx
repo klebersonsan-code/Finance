@@ -454,9 +454,10 @@ function Dashboard(props) {
             </section>
           </aside>
 
-          <section style={styles.card} className="premium-card fade-up dashboard-history">
+          <section style={styles.historyCard} className="premium-card fade-up dashboard-history">
             <div style={styles.cardHeader}>
               <div>
+                <span style={styles.historyEyebrow}>Historico</span>
                 <h2 style={styles.cardTitle}>Historico mensal</h2>
                 <p style={styles.muted}>
                   {loadingTransactions
@@ -750,8 +751,10 @@ const styles = {
   sidebar: { display: 'grid', gap: '20px' },
   card: { ...cardBase, padding: '26px', display: 'grid', gap: '20px', background: 'linear-gradient(180deg, rgba(11,20,36,0.96), rgba(9,18,33,0.88))' },
   formCard: { ...cardBase, padding: '28px', display: 'grid', gap: '22px', background: 'linear-gradient(180deg, rgba(13,25,45,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(103,232,249,0.12)', boxShadow: '0 28px 70px rgba(2, 6, 23, 0.42)' },
+  historyCard: { ...cardBase, padding: '28px', display: 'grid', gap: '22px', background: 'linear-gradient(180deg, rgba(12,22,40,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(148,163,184,0.14)', boxShadow: '0 26px 64px rgba(2, 6, 23, 0.38)' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' },
   formEyebrow: { display: 'inline-block', marginBottom: '10px', color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.72rem', fontWeight: 700 },
+  historyEyebrow: { display: 'inline-block', marginBottom: '10px', color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '0.72rem', fontWeight: 700 },
   cardTitle: { margin: 0, color: '#f8fafc', fontSize: '1.24rem', lineHeight: 1.2 },
   cardSubtitle: { margin: '8px 0 0', color: '#7f93b3', fontSize: '0.92rem', lineHeight: 1.65, maxWidth: '460px' },
   filterSummary: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
@@ -885,16 +888,16 @@ const styles = {
     fontSize: '0.92rem',
     lineHeight: 1.5,
   },
-  monthCard: { borderRadius: '24px', padding: '20px', background: 'linear-gradient(180deg, rgba(16,24,41,0.68), rgba(13,21,37,0.52))', border: '1px solid rgba(148,163,184,0.12)', display: 'grid', gap: '14px' },
-  monthHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap' },
-  monthTitle: { margin: 0, color: '#e2e8f0', fontSize: '1.05rem', textTransform: 'capitalize' },
-  monthBadge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '999px', background: 'rgba(15,23,42,0.72)', border: '1px solid rgba(148,163,184,0.12)', color: '#d7f9ff', fontSize: '0.88rem', fontWeight: 700 },
+  monthCard: { borderRadius: '24px', padding: '22px', background: 'linear-gradient(180deg, rgba(17,27,46,0.76), rgba(12,20,36,0.56))', border: '1px solid rgba(148,163,184,0.12)', display: 'grid', gap: '16px', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)' },
+  monthHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', paddingBottom: '2px' },
+  monthTitle: { margin: 0, color: '#f8fafc', fontSize: '1.08rem', textTransform: 'capitalize' },
+  monthBadge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '9px 13px', borderRadius: '999px', background: 'rgba(15,23,42,0.82)', border: '1px solid rgba(125,211,252,0.12)', color: '#d7f9ff', fontSize: '0.88rem', fontWeight: 700 },
   transactionList: { display: 'grid', gap: '12px' },
-  transactionItem: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '14px', padding: '18px', borderRadius: '20px', background: 'rgba(9,18,33,0.92)', border: '1px solid rgba(148,163,184,0.14)' },
+  transactionItem: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '14px', padding: '18px', borderRadius: '20px', background: 'linear-gradient(180deg, rgba(9,18,33,0.96), rgba(10,20,37,0.88))', border: '1px solid rgba(148,163,184,0.14)', boxShadow: '0 14px 28px rgba(2, 6, 23, 0.2)' },
   transactionLeft: { display: 'flex', gap: '14px', alignItems: 'flex-start', minWidth: 0 },
   iconBubble: { width: '48px', height: '48px', borderRadius: '16px', display: 'grid', placeItems: 'center', fontSize: '1.3rem', background: 'linear-gradient(135deg, rgba(37,99,235,0.24), rgba(20,184,166,0.16))', border: '1px solid rgba(125,211,252,0.12)', flexShrink: 0 },
   transactionTop: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
-  transactionTitle: { color: '#f8fafc', fontSize: '1rem', lineHeight: 1.35 },
+  transactionTitle: { color: '#f8fafc', fontSize: '1rem', lineHeight: 1.35, letterSpacing: '-0.01em' },
   metaLine: { display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', color: '#94a3b8', fontSize: '0.85rem', marginTop: '10px' },
   typePill: (income) => ({ display: 'inline-flex', alignItems: 'center', borderRadius: '999px', padding: '5px 10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize', color: income ? '#86efac' : '#fca5a5', background: income ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.14)' }),
   transactionRight: { display: 'grid', justifyItems: 'end', alignContent: 'space-between', gap: '12px' },
