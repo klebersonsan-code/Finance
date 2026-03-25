@@ -338,8 +338,8 @@ function Dashboard(props) {
           </div>
         </section>
 
-        <section style={styles.contentGrid}>
-          <aside style={styles.sidebar}>
+        <section style={styles.contentGrid} className="dashboard-content-grid">
+          <aside style={styles.sidebar} className="dashboard-sidebar">
             <form onSubmit={handleSubmit} style={styles.card} className="premium-card fade-up">
               <div style={styles.cardHeader}>
                 <div>
@@ -453,7 +453,7 @@ function Dashboard(props) {
             </section>
           </aside>
 
-          <section style={styles.card} className="premium-card fade-up">
+          <section style={styles.card} className="premium-card fade-up dashboard-history">
             <div style={styles.cardHeader}>
               <div>
                 <h2 style={styles.cardTitle}>Historico mensal</h2>

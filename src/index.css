@@ -257,6 +257,16 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 
+  .dashboard-content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-sidebar,
+  .dashboard-history {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
   .dashboard-shell div[style*='grid-template-columns: minmax(320px, 380px)'] {
     grid-template-columns: 1fr !important;
   }
@@ -388,6 +398,18 @@ select:focus {
 
   .dashboard-shell div[style*='minmax(320px, 380px)'] {
     grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-content-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .dashboard-history,
+  .dashboard-sidebar {
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden;
   }
 
   .dashboard-shell div[style*='220px'],
