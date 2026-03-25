@@ -306,6 +306,11 @@ select:focus {
     gap: 18px !important;
   }
 
+  .dashboard-chart-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
   .app-phone-shell::before {
     display: block;
     content: '';
@@ -355,6 +360,7 @@ select:focus {
 
   .dashboard-chart-grid {
     order: 5;
+    grid-template-columns: 1fr !important;
   }
 
   .dashboard-sidebar,
@@ -519,8 +525,8 @@ select:focus {
   }
 
   .dashboard-chart-grid div[style*='height: 300px'] {
-    height: 220px !important;
-    min-height: 220px !important;
+    height: 260px !important;
+    min-height: 260px !important;
   }
 
   .dashboard-shell div[style*='place-items: center'] {
@@ -579,8 +585,8 @@ select:focus {
   }
 
   .dashboard-chart-grid div[style*='height: 300px'] {
-    height: 200px !important;
-    min-height: 200px !important;
+    height: 230px !important;
+    min-height: 230px !important;
   }
 }
 
