@@ -31,11 +31,11 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
 
       <section style={styles.card} className="auth-card premium-card fade-up">
         <div style={styles.content}>
-          <span style={styles.eyebrow}>Supabase Finance</span>
-          <h1 style={styles.title}>Entre para sincronizar suas transacoes</h1>
+          <span style={styles.eyebrow}>Finance Pro</span>
+          <h1 style={styles.title}>Finance Pro</h1>
           <p style={styles.subtitle}>
-            Login, cadastro, persistencia no banco e isolamento por usuario ja
-            estao preparados no app.
+            Gerencie suas financas de forma simples e inteligente. Acompanhe
+            suas receitas, despesas e mantenha tudo sob controle.
           </p>
 
           {!configured ? (
