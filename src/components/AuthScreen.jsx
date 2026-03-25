@@ -41,7 +41,7 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
           <h1 style={styles.title}>Finance Pro</h1>
           <p style={styles.subtitle}>
             {
-              'Gerencie suas financas de forma simples e inteligente. Acompanhe receitas, despesas e tome decis\u00F5es financeiras melhores.'
+              'Gerencie suas finanças de forma simples e inteligente. Acompanhe receitas, despesas e tome decisões financeiras melhores.'
             }
           </p>
 
@@ -54,11 +54,11 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
             </div>
             <div style={styles.featureItem}>
               <span style={styles.featureDot} />
-              <span style={styles.featureText}>Acesso rapido em qualquer dispositivo</span>
+              <span style={styles.featureText}>Acesso rápido em qualquer dispositivo</span>
             </div>
             <div style={styles.featureItem}>
               <span style={styles.featureDot} />
-              <span style={styles.featureText}>Experiencia simples, elegante e segura</span>
+              <span style={styles.featureText}>Experiência simples, elegante e segura</span>
             </div>
           </div>
 
@@ -77,7 +77,7 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
           {configured ? (
             <div style={styles.assuranceRow}>
               <div style={styles.assuranceItem}>
-                <span style={styles.assuranceTitle}>Acesso rapido</span>
+                <span style={styles.assuranceTitle}>Acesso rápido</span>
                 <span style={styles.assuranceText}>Entre e continue exatamente de onde parou.</span>
               </div>
               <div style={styles.assuranceItem}>
