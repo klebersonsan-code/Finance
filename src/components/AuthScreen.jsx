@@ -25,6 +25,10 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
     await onSignUp(email, password)
   }
 
+  const isSuccessMessage = authError.startsWith('Conta criada')
+  const feedbackMessage = localError || authError
+  const feedbackStyle = isSuccessMessage ? styles.successBox : styles.errorBox
+
   return (
     <main style={styles.page} className="auth-shell">
       <div style={styles.glowA} />
@@ -67,6 +71,19 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
                 Defina `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no seu `.env`
                 e rode o SQL incluido no projeto para criar a tabela com RLS.
               </p>
+            </div>
+          ) : null}
+
+          {configured ? (
+            <div style={styles.assuranceRow}>
+              <div style={styles.assuranceItem}>
+                <span style={styles.assuranceTitle}>Acesso rapido</span>
+                <span style={styles.assuranceText}>Entre e continue exatamente de onde parou.</span>
+              </div>
+              <div style={styles.assuranceItem}>
+                <span style={styles.assuranceTitle}>Painel intuitivo</span>
+                <span style={styles.assuranceText}>Visual claro para acompanhar sua rotina financeira.</span>
+              </div>
             </div>
           ) : null}
         </div>
@@ -138,8 +155,8 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
             />
           </label>
 
-          {localError || authError ? (
-            <div style={styles.errorBox}>{localError || authError}</div>
+          {feedbackMessage ? (
+            <div style={feedbackStyle}>{feedbackMessage}</div>
           ) : null}
 
           <button
@@ -272,6 +289,30 @@ const styles = {
     fontSize: '0.95rem',
     lineHeight: 1.55,
   },
+  assuranceRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '12px',
+    marginTop: '8px',
+  },
+  assuranceItem: {
+    display: 'grid',
+    gap: '6px',
+    padding: '14px 16px',
+    borderRadius: '18px',
+    background: 'rgba(15, 23, 42, 0.5)',
+    border: '1px solid rgba(148, 163, 184, 0.12)',
+  },
+  assuranceTitle: {
+    color: '#e2e8f0',
+    fontSize: '0.88rem',
+    fontWeight: 700,
+  },
+  assuranceText: {
+    color: '#7f93b3',
+    fontSize: '0.86rem',
+    lineHeight: 1.55,
+  },
   notice: {
     marginTop: '10px',
     padding: '18px',
@@ -370,6 +411,13 @@ const styles = {
     background: 'rgba(127, 29, 29, 0.18)',
     border: '1px solid rgba(248, 113, 113, 0.18)',
     color: '#fca5a5',
+  },
+  successBox: {
+    borderRadius: '14px',
+    padding: '12px 14px',
+    background: 'rgba(6, 95, 70, 0.2)',
+    border: '1px solid rgba(52, 211, 153, 0.2)',
+    color: '#a7f3d0',
   },
   submitButton: (disabled) => ({
     border: 'none',

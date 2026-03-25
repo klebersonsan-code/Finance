@@ -49,6 +49,8 @@ function Dashboard(props) {
     [transactions],
   )
 
+  const hasTransactions = transactions.length > 0
+
   const filteredTransactions = useMemo(() => {
     return [...transactions]
       .filter((item) => (typeFilter === 'todos' ? true : item.type === typeFilter))
@@ -85,6 +87,12 @@ function Dashboard(props) {
   }, [filteredTransactions])
 
   const currentCategories = categoryMap[form.type]
+  const syncTone =
+    syncStatus === 'erro'
+      ? styles.syncBadgeError
+      : syncStatus === 'tempo real ativo'
+        ? styles.syncBadgeLive
+        : styles.syncBadgeDefault
   const comparisonData = [
     { name: 'Receitas', value: summary.receitas, fill: '#34d399' },
     { name: 'Despesas', value: summary.despesas, fill: '#fb7185' },
@@ -193,7 +201,7 @@ function Dashboard(props) {
           <StatCard label="Saldo filtrado" value={formatCurrency(summary.saldo)} />
           <StatCard label="Receitas" value={formatCurrency(summary.receitas)} green />
           <StatCard label="Despesas" value={formatCurrency(summary.despesas)} red />
-          <StatCard label="Sincronizacao" value={syncStatus} small />
+          <StatCard label="Sincronizacao" value={syncStatus} small tone={syncTone} />
         </section>
 
         <section style={styles.grid2}>
@@ -388,8 +396,35 @@ function Dashboard(props) {
               <span style={styles.badge}>{typeFilter}</span>
             </div>
 
-            {filteredTransactions.length === 0 ? (
-              <div style={styles.empty}>Nenhuma transacao encontrada.</div>
+            {!hasTransactions && !loadingTransactions ? (
+              <div style={styles.emptyState}>
+                <div style={styles.emptyOrb}>+</div>
+                <div style={styles.emptyContent}>
+                  <h3 style={styles.emptyTitle}>Seu painel esta pronto para comecar</h3>
+                  <p style={styles.emptyDescription}>
+                    Adicione sua primeira transacao para visualizar saldo, graficos e
+                    historico mensal com mais contexto.
+                  </p>
+                  <div style={styles.emptySteps}>
+                    <div style={styles.emptyStep}>
+                      <span style={styles.emptyStepNumber}>1</span>
+                      <span style={styles.emptyStepText}>Cadastre uma receita ou despesa</span>
+                    </div>
+                    <div style={styles.emptyStep}>
+                      <span style={styles.emptyStepNumber}>2</span>
+                      <span style={styles.emptyStepText}>Classifique por categoria e data</span>
+                    </div>
+                    <div style={styles.emptyStep}>
+                      <span style={styles.emptyStepNumber}>3</span>
+                      <span style={styles.emptyStepText}>Acompanhe a evolucao do mes no dashboard</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : filteredTransactions.length === 0 ? (
+              <div style={styles.empty}>
+                Nenhuma transacao encontrada com os filtros atuais.
+              </div>
             ) : (
               <div style={styles.groupList}>
                 {Object.entries(groupedTransactions).map(([monthKey, items]) => (
@@ -470,9 +505,9 @@ function Field({ label, children }) {
   )
 }
 
-function StatCard({ label, value, green, red, small }) {
+function StatCard({ label, value, green, red, small, tone }) {
   return (
-    <article style={styles.statCard}>
+    <article style={{ ...styles.statCard, ...(tone || {}) }}>
       <span style={styles.statLabel}>{label}</span>
       <strong
         style={{
@@ -555,7 +590,89 @@ const styles = {
   ghostButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '12px', padding: '10px 14px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
   muted: { margin: '8px 0 0', color: '#64748b', fontSize: '0.92rem', lineHeight: 1.6 },
   badge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '999px', background: 'rgba(37,99,235,0.18)', color: '#93c5fd', fontSize: '0.84rem', fontWeight: 700, textTransform: 'capitalize', border: '1px solid rgba(125,211,252,0.12)' },
+  syncBadgeDefault: {
+    background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))',
+  },
+  syncBadgeLive: {
+    background:
+      'linear-gradient(180deg, rgba(7, 36, 33, 0.95), rgba(7, 27, 32, 0.88))',
+    border: '1px solid rgba(52, 211, 153, 0.18)',
+    boxShadow: '0 22px 50px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(52, 211, 153, 0.08)',
+  },
+  syncBadgeError: {
+    background:
+      'linear-gradient(180deg, rgba(47, 16, 24, 0.95), rgba(27, 10, 18, 0.88))',
+    border: '1px solid rgba(248, 113, 113, 0.18)',
+    boxShadow: '0 22px 50px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(248, 113, 113, 0.08)',
+  },
   groupList: { display: 'grid', gap: '18px' },
+  emptyState: {
+    display: 'grid',
+    gap: '20px',
+    padding: '28px',
+    borderRadius: '24px',
+    background:
+      'linear-gradient(180deg, rgba(12, 22, 40, 0.9), rgba(9, 18, 33, 0.82))',
+    border: '1px solid rgba(148, 163, 184, 0.14)',
+  },
+  emptyOrb: {
+    width: '54px',
+    height: '54px',
+    borderRadius: '18px',
+    display: 'grid',
+    placeItems: 'center',
+    background: 'linear-gradient(135deg, rgba(37,99,235,0.24), rgba(20,184,166,0.18))',
+    color: '#d7f9ff',
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    border: '1px solid rgba(125,211,252,0.12)',
+    boxShadow: '0 18px 40px rgba(2, 6, 23, 0.28)',
+  },
+  emptyContent: {
+    display: 'grid',
+    gap: '12px',
+  },
+  emptyTitle: {
+    margin: 0,
+    color: '#f8fafc',
+    fontSize: '1.16rem',
+  },
+  emptyDescription: {
+    color: '#94a3b8',
+    lineHeight: 1.8,
+    maxWidth: '560px',
+  },
+  emptySteps: {
+    display: 'grid',
+    gap: '10px',
+    marginTop: '4px',
+  },
+  emptyStep: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 14px',
+    borderRadius: '16px',
+    background: 'rgba(15,23,42,0.56)',
+    border: '1px solid rgba(148,163,184,0.1)',
+  },
+  emptyStepNumber: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '999px',
+    display: 'grid',
+    placeItems: 'center',
+    background: 'rgba(37,99,235,0.18)',
+    color: '#93c5fd',
+    fontSize: '0.82rem',
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  emptyStepText: {
+    color: '#cbd5e1',
+    fontSize: '0.92rem',
+    lineHeight: 1.5,
+  },
   monthCard: { borderRadius: '24px', padding: '20px', background: 'linear-gradient(180deg, rgba(16,24,41,0.68), rgba(13,21,37,0.52))', border: '1px solid rgba(148,163,184,0.12)', display: 'grid', gap: '14px' },
   monthHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap' },
   monthTitle: { margin: 0, color: '#e2e8f0', fontSize: '1.05rem', textTransform: 'capitalize' },

@@ -278,6 +278,10 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 
+  .auth-shell div[style*='repeat(2, minmax(0, 1fr))'] {
+    grid-template-columns: 1fr !important;
+  }
+
   .dashboard-shell article[style*='grid-template-columns: minmax(0, 1fr) auto'] {
     grid-template-columns: 1fr !important;
   }
