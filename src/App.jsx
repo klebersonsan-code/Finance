@@ -10,6 +10,7 @@ function App() {
   const [loadingTransactions, setLoadingTransactions] = useState(false)
   const [savingTransaction, setSavingTransaction] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState(null)
   const [authError, setAuthError] = useState('')
   const [syncStatus, setSyncStatus] = useState('desconectado')
 
@@ -50,6 +51,16 @@ function App() {
       listener.subscription.unsubscribe()
     }
   }, [])
+
+  useEffect(() => {
+    if (!notice) return undefined
+
+    const timeoutId = window.setTimeout(() => {
+      setNotice(null)
+    }, 3200)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [notice])
 
   useEffect(() => {
     if (!user || !isSupabaseConfigured) {
@@ -166,6 +177,7 @@ function App() {
 
     setSavingTransaction(true)
     setError('')
+    setNotice(null)
 
     const payload = {
       description: transaction.description,
@@ -188,10 +200,17 @@ function App() {
 
     if (saveError) {
       setError(saveError.message)
+      setNotice({ type: 'error', message: 'Nao foi possivel salvar a transacao.' })
       setSavingTransaction(false)
       return false
     }
 
+    setNotice({
+      type: 'success',
+      message: transaction.id
+        ? 'Transacao atualizada com sucesso.'
+        : 'Transacao adicionada com sucesso.',
+    })
     setSavingTransaction(false)
     return true
   }
@@ -200,6 +219,7 @@ function App() {
     if (!user) return
 
     setError('')
+    setNotice(null)
 
     const { error: deleteError } = await supabase
       .from('transactions')
@@ -209,7 +229,12 @@ function App() {
 
     if (deleteError) {
       setError(deleteError.message)
+      setNotice({ type: 'error', message: 'Nao foi possivel excluir a transacao.' })
+      return false
     }
+
+    setNotice({ type: 'success', message: 'Transacao excluida com sucesso.' })
+    return true
   }
 
   async function handleSignOut() {
@@ -246,6 +271,7 @@ function App() {
       savingTransaction={savingTransaction}
       syncStatus={syncStatus}
       error={error}
+      notice={notice}
       onSaveTransaction={handleSaveTransaction}
       onDeleteTransaction={handleDeleteTransaction}
       onSignOut={handleSignOut}

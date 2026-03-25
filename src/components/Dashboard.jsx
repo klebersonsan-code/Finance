@@ -31,6 +31,7 @@ function Dashboard(props) {
     savingTransaction,
     syncStatus,
     error,
+    notice,
     onSaveTransaction,
     onDeleteTransaction,
     onSignOut,
@@ -159,6 +160,13 @@ function Dashboard(props) {
     })
   }
 
+  async function handleDelete(id) {
+    const success = await onDeleteTransaction(id)
+    if (success && editingId === id) {
+      resetForm()
+    }
+  }
+
   return (
     <main style={styles.page} className="dashboard-shell">
       <section style={styles.container} className="dashboard-container">
@@ -196,6 +204,14 @@ function Dashboard(props) {
         </header>
 
         {error ? <div style={styles.alert} className="premium-card fade-up">{error}</div> : null}
+        {notice ? (
+          <div
+            style={notice.type === 'success' ? styles.successAlert : styles.warningAlert}
+            className="premium-card fade-up"
+          >
+            {notice.message}
+          </div>
+        ) : null}
 
         <section style={styles.grid4}>
           <StatCard label="Saldo filtrado" value={formatCurrency(summary.saldo)} />
@@ -476,7 +492,7 @@ function Dashboard(props) {
                                 <button type="button" onClick={() => handleEdit(item)} style={styles.smallButton} className="interactive-button">
                                   Editar
                                 </button>
-                                <button type="button" onClick={() => onDeleteTransaction(item.id)} style={styles.deleteButton} className="interactive-button">
+                                <button type="button" onClick={() => handleDelete(item.id)} style={styles.deleteButton} className="interactive-button">
                                   Excluir
                                 </button>
                               </div>
@@ -563,6 +579,20 @@ const styles = {
   userValue: { color: '#e2e8f0', fontSize: '0.9rem' },
   secondaryButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '16px', padding: '14px 18px', background: 'rgba(15,23,42,0.85)', color: '#e2e8f0', fontWeight: 700, cursor: 'pointer' },
   alert: { ...cardBase, padding: '14px 16px', background: 'rgba(127,29,29,0.18)', color: '#fca5a5' },
+  successAlert: {
+    ...cardBase,
+    padding: '14px 16px',
+    background: 'rgba(6, 95, 70, 0.18)',
+    border: '1px solid rgba(52, 211, 153, 0.18)',
+    color: '#a7f3d0',
+  },
+  warningAlert: {
+    ...cardBase,
+    padding: '14px 16px',
+    background: 'rgba(127,29,29,0.18)',
+    border: '1px solid rgba(248, 113, 113, 0.18)',
+    color: '#fecaca',
+  },
   grid4: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' },
   statCard: { ...cardBase, padding: '24px', display: 'grid', gap: '10px', background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))' },
   statLabel: { color: '#94a3b8', fontSize: '0.92rem' },
