@@ -1,0 +1,21 @@
+{
+  "name": "Finance Flow",
+  "short_name": "FinanceFlow",
+  "description": "Controle financeiro com sincronizacao em tempo real, graficos e modo dark.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
