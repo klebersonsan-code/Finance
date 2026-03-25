@@ -23,10 +23,12 @@ create index if not exists transactions_user_id_date_created_id_idx
 create index if not exists transactions_user_id_type_date_created_idx
   on public.transactions (user_id, type, date desc, created_at desc);
 
-create index if not exists transactions_user_id_month_idx
-  on public.transactions (user_id, date_trunc('month', date));
-
 alter table public.transactions enable row level security;
+
+drop policy if exists "Users can view their own transactions" on public.transactions;
+drop policy if exists "Users can insert their own transactions" on public.transactions;
+drop policy if exists "Users can update their own transactions" on public.transactions;
+drop policy if exists "Users can delete their own transactions" on public.transactions;
 
 create policy "Users can view their own transactions"
 on public.transactions
@@ -54,7 +56,7 @@ returns table (month_key text)
 language sql
 stable
 as $$
-  select to_char(date_trunc('month', t.date), 'YYYY-MM') as month_key
+  select to_char(date_trunc('month', t.date::timestamp), 'YYYY-MM') as month_key
   from public.transactions t
   where t.user_id = auth.uid()
   group by 1
