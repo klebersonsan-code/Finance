@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -41,6 +41,11 @@ function Dashboard(props) {
   const [editingId, setEditingId] = useState(null)
   const [typeFilter, setTypeFilter] = useState('todos')
   const [monthFilter, setMonthFilter] = useState('todos')
+  const [activeTab, setActiveTab] = useState('inicio')
+  const homeRef = useRef(null)
+  const formRef = useRef(null)
+  const historyRef = useRef(null)
+  const chartsRef = useRef(null)
 
   const monthOptions = useMemo(
     () =>
@@ -96,12 +101,6 @@ function Dashboard(props) {
       ? { label: `Mes: ${formatMonthLabel(monthFilter)}` }
       : null,
   ].filter(Boolean)
-  const syncTone =
-    syncStatus === 'erro'
-      ? styles.syncBadgeError
-      : syncStatus === 'tempo real ativo'
-        ? styles.syncBadgeLive
-        : styles.syncBadgeDefault
   const comparisonData = [
     { name: 'Receitas', value: summary.receitas, fill: '#34d399' },
     { name: 'Despesas', value: summary.despesas, fill: '#fb7185' },
@@ -175,39 +174,65 @@ function Dashboard(props) {
     }
   }
 
+  function scrollToSection(section, tab) {
+    setActiveTab(tab)
+    section.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <main style={styles.page} className="dashboard-shell">
-      <section style={styles.container} className="dashboard-container">
-        <header style={styles.hero} className="premium-card hero-card fade-up">
-          <div className="hero-main">
-            <span style={styles.kicker}>Dashboard Financeiro</span>
-            <span style={styles.heroPill}>Visao premium do seu fluxo financeiro</span>
-            <h1 style={styles.title}>Controle suas entradas e saidas com foco</h1>
-            <p style={styles.subtitle} className="hero-subtitle">
-              Acompanhe suas finanças em tempo real, com segurança e praticidade.
-            </p>
-            <div style={styles.heroStats} className="hero-stats">
-              <div style={styles.heroStat}>
-                <span style={styles.heroStatLabel}>Transacoes</span>
-                <strong style={styles.heroStatValue}>{transactions.length}</strong>
-              </div>
-              <div style={styles.heroStat}>
-                <span style={styles.heroStatLabel}>Periodo exibido</span>
-                <strong style={styles.heroStatValue}>
-                  {monthFilter === 'todos' ? 'Todos os meses' : formatMonthLabel(monthFilter)}
-                </strong>
-              </div>
+      <section style={styles.container} className="dashboard-container app-phone-shell">
+        <header
+          ref={homeRef}
+          style={styles.appHeader}
+          className="premium-card app-header-card fade-up"
+        >
+          <div style={styles.appHeaderTop}>
+            <div>
+              <span style={styles.kicker}>Finance Pro</span>
+              <h1 style={styles.appTitle}>Seu dinheiro sob controle</h1>
             </div>
-          </div>
-
-          <div style={styles.heroSide} className="hero-side">
-            <div style={styles.userBox} className="premium-subcard user-session-card">
-              <span style={styles.userLabel}>Sessao</span>
-              <strong style={styles.userValue}>{user.email}</strong>
-            </div>
-            <button type="button" onClick={onSignOut} style={styles.secondaryButton} className="interactive-button signout-button">
+            <button
+              type="button"
+              onClick={onSignOut}
+              style={styles.headerAction}
+              className="interactive-button"
+            >
               Sair
             </button>
+          </div>
+
+          <div style={styles.balanceCard} className="premium-subcard">
+            <div style={styles.balanceTop}>
+              <div>
+                <span style={styles.balanceLabel}>Saldo disponivel</span>
+                <strong style={styles.balanceValue}>{formatCurrency(summary.saldo)}</strong>
+              </div>
+              <span style={styles.syncPill(syncStatus)}>
+                {syncStatus === 'tempo real ativo' ? 'Ao vivo' : syncStatus}
+              </span>
+            </div>
+            <p style={styles.balanceCopy}>
+              {'Acompanhe suas finan\u00E7as em tempo real, com seguran\u00E7a e praticidade.'}
+            </p>
+            <div style={styles.quickActionRow}>
+              <button
+                type="button"
+                onClick={() => scrollToSection(formRef, 'adicionar')}
+                style={styles.primaryQuickAction}
+                className="interactive-button"
+              >
+                Nova transacao
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection(historyRef, 'historico')}
+                style={styles.secondaryQuickAction}
+                className="interactive-button"
+              >
+                Ver historico
+              </button>
+            </div>
           </div>
         </header>
 
@@ -221,12 +246,7 @@ function Dashboard(props) {
           </div>
         ) : null}
 
-        <section style={styles.grid4} className="summary-grid">
-          <StatCard
-            label="Saldo filtrado"
-            value={formatCurrency(summary.saldo)}
-            loading={loadingTransactions}
-          />
+        <section style={styles.summaryGrid} className="summary-grid">
           <StatCard
             label="Receitas"
             value={formatCurrency(summary.receitas)}
@@ -240,15 +260,20 @@ function Dashboard(props) {
             loading={loadingTransactions}
           />
           <StatCard
-            label="Sincronizacao"
-            value={syncStatus}
+            label="Periodo"
+            value={monthFilter === 'todos' ? 'Geral' : formatMonthLabel(monthFilter)}
             small
-            tone={syncTone}
+            loading={loadingTransactions}
+          />
+          <StatCard
+            label="Transacoes"
+            value={String(filteredTransactions.length)}
+            small
             loading={loadingTransactions}
           />
         </section>
 
-        <section style={styles.grid2} className="dashboard-chart-grid">
+        <section ref={chartsRef} style={styles.grid2} className="dashboard-chart-grid">
           <div style={styles.card} className="premium-card fade-up">
             <div style={styles.cardHeader}>
               <div>
@@ -340,7 +365,12 @@ function Dashboard(props) {
 
         <section style={styles.contentGrid} className="dashboard-content-grid">
           <aside style={styles.sidebar} className="dashboard-sidebar">
-            <form onSubmit={handleSubmit} style={styles.formCard} className="premium-card fade-up transaction-form-card">
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit}
+              style={styles.formCard}
+              className="premium-card fade-up transaction-form-card"
+            >
               <div style={styles.cardHeader}>
                 <div>
                   <span style={styles.formEyebrow}>Movimentacao</span>
@@ -454,7 +484,11 @@ function Dashboard(props) {
             </section>
           </aside>
 
-          <section style={styles.historyCard} className="premium-card fade-up dashboard-history">
+          <section
+            ref={historyRef}
+            style={styles.historyCard}
+            className="premium-card fade-up dashboard-history"
+          >
             <div style={styles.cardHeader}>
               <div>
                 <span style={styles.historyEyebrow}>Historico</span>
@@ -565,6 +599,46 @@ function Dashboard(props) {
             )}
           </section>
         </section>
+
+        <button
+          type="button"
+          onClick={() => scrollToSection(formRef, 'adicionar')}
+          style={styles.fabButton}
+          className="interactive-button app-fab"
+        >
+          +
+        </button>
+
+        <nav style={styles.bottomNav} className="app-bottom-nav">
+          <button
+            type="button"
+            onClick={() => scrollToSection(homeRef, 'inicio')}
+            style={styles.navButton(activeTab === 'inicio')}
+          >
+            <span style={styles.navIcon}>Inicio</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection(historyRef, 'historico')}
+            style={styles.navButton(activeTab === 'historico')}
+          >
+            <span style={styles.navIcon}>Historico</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection(formRef, 'adicionar')}
+            style={styles.navButton(activeTab === 'adicionar')}
+          >
+            <span style={styles.navIcon}>Adicionar</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection(chartsRef, 'perfil')}
+            style={styles.navButton(activeTab === 'perfil')}
+          >
+            <span style={styles.navIcon}>Analises</span>
+          </button>
+        </nav>
       </section>
     </main>
   )
@@ -708,25 +782,52 @@ const cardBase = {
 const styles = {
   page: {
     minHeight: '100vh',
-    padding: '36px 20px 48px',
+    padding: '24px 16px 120px',
     background:
-      'radial-gradient(circle at top, rgba(59,130,246,0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(16,185,129,0.12), transparent 28%), #07111f',
+      'radial-gradient(circle at top, rgba(59,130,246,0.18), transparent 24%), radial-gradient(circle at bottom right, rgba(16,185,129,0.12), transparent 26%), #07111f',
   },
-  container: { maxWidth: '1180px', margin: '0 auto', display: 'grid', gap: '26px' },
-  hero: { ...cardBase, display: 'flex', justifyContent: 'space-between', gap: '30px', flexWrap: 'wrap', padding: '36px', alignItems: 'flex-start' },
+  container: { maxWidth: '480px', margin: '0 auto', display: 'grid', gap: '18px', position: 'relative' },
+  appHeader: { ...cardBase, display: 'grid', gap: '16px', padding: '20px', background: 'linear-gradient(180deg, rgba(10,19,35,0.98), rgba(8,16,31,0.92))', border: '1px solid rgba(103,232,249,0.1)' },
+  appHeaderTop: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' },
   kicker: { color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '12px', fontWeight: 700 },
-  heroPill: { display: 'inline-flex', alignItems: 'center', width: 'fit-content', marginTop: '16px', padding: '9px 14px', borderRadius: '999px', background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(125,211,252,0.14)', color: '#cbe9ff', fontSize: '0.84rem', fontWeight: 600 },
-  title: { margin: '22px 0 0', color: '#f8fafc', fontSize: 'clamp(2.5rem, 5vw, 4.4rem)', lineHeight: 0.96, maxWidth: '560px' },
-  subtitle: { margin: '20px 0 0', color: '#94a3b8', lineHeight: 1.85, maxWidth: '520px', fontSize: '1.02rem' },
-  heroStats: { display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '28px', maxWidth: '520px' },
-  heroStat: { display: 'grid', gap: '6px', minWidth: '160px', padding: '14px 16px', borderRadius: '18px', background: 'rgba(15, 23, 42, 0.58)', border: '1px solid rgba(148,163,184,0.12)' },
-  heroStatLabel: { color: '#7f93b3', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.12em' },
-  heroStatValue: { color: '#eff6ff', fontSize: '1rem' },
-  heroSide: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', alignSelf: 'flex-start', paddingTop: '6px' },
-  userBox: { ...cardBase, padding: '14px 16px', background: 'rgba(15, 23, 42, 0.82)' },
-  userLabel: { display: 'block', fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em' },
-  userValue: { color: '#e2e8f0', fontSize: '0.9rem' },
-  secondaryButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '16px', padding: '14px 18px', background: 'rgba(15,23,42,0.85)', color: '#e2e8f0', fontWeight: 700, cursor: 'pointer' },
+  appTitle: { margin: '8px 0 0', color: '#f8fafc', fontSize: '1.3rem', lineHeight: 1.1 },
+  headerAction: { border: '1px solid rgba(148,163,184,0.16)', borderRadius: '14px', padding: '10px 14px', background: 'rgba(15,23,42,0.72)', color: '#e2e8f0', fontWeight: 700, cursor: 'pointer' },
+  balanceCard: { ...cardBase, padding: '18px', background: 'linear-gradient(135deg, rgba(20,33,58,0.95), rgba(9,18,33,0.92))', border: '1px solid rgba(103,232,249,0.14)' },
+  balanceTop: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '14px' },
+  balanceLabel: { display: 'block', color: '#8fb4d8', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.12em' },
+  balanceValue: { display: 'block', marginTop: '10px', color: '#f8fafc', fontSize: '2.1rem', lineHeight: 1, letterSpacing: '-0.04em' },
+  balanceCopy: { margin: '14px 0 0', color: '#9ab0c8', lineHeight: 1.7, fontSize: '0.92rem', maxWidth: '320px' },
+  syncPill: (status) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '8px 12px',
+    borderRadius: '999px',
+    fontSize: '0.76rem',
+    fontWeight: 700,
+    color:
+      status === 'tempo real ativo'
+        ? '#a7f3d0'
+        : status === 'erro'
+          ? '#fecaca'
+          : '#cbe9ff',
+    background:
+      status === 'tempo real ativo'
+        ? 'rgba(6,95,70,0.22)'
+        : status === 'erro'
+          ? 'rgba(127,29,29,0.24)'
+          : 'rgba(37,99,235,0.18)',
+    border:
+      status === 'tempo real ativo'
+        ? '1px solid rgba(52,211,153,0.2)'
+        : status === 'erro'
+          ? '1px solid rgba(248,113,113,0.2)'
+          : '1px solid rgba(125,211,252,0.14)',
+    textTransform: 'capitalize',
+  }),
+  quickActionRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px' },
+  primaryQuickAction: { border: 'none', borderRadius: '16px', padding: '14px 16px', background: 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#eff6ff', fontWeight: 700, cursor: 'pointer' },
+  secondaryQuickAction: { border: '1px solid rgba(148,163,184,0.16)', borderRadius: '16px', padding: '14px 16px', background: 'rgba(15,23,42,0.72)', color: '#dce9f8', fontWeight: 700, cursor: 'pointer' },
   alert: { ...cardBase, padding: '14px 16px', background: 'rgba(127,29,29,0.18)', color: '#fca5a5' },
   successAlert: {
     ...cardBase,
@@ -742,14 +843,14 @@ const styles = {
     border: '1px solid rgba(248, 113, 113, 0.18)',
     color: '#fecaca',
   },
-  grid4: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' },
-  statCard: { ...cardBase, padding: '24px', display: 'grid', gap: '10px', background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))' },
-  statLabel: { color: '#94a3b8', fontSize: '0.92rem' },
-  statValue: { color: '#67e8f9', fontSize: '2rem', lineHeight: 1 },
+  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' },
+  statCard: { ...cardBase, padding: '16px', display: 'grid', gap: '8px', background: 'linear-gradient(180deg, rgba(12,22,40,0.96), rgba(9,18,33,0.88))', minHeight: '104px' },
+  statLabel: { color: '#94a3b8', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  statValue: { color: '#67e8f9', fontSize: '1.28rem', lineHeight: 1.1 },
   grid2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' },
-  contentGrid: { display: 'grid', gridTemplateColumns: 'minmax(320px, 380px) minmax(0, 1fr)', gap: '20px', alignItems: 'start' },
+  contentGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '18px', alignItems: 'start' },
   sidebar: { display: 'grid', gap: '20px' },
-  card: { ...cardBase, padding: '26px', display: 'grid', gap: '20px', background: 'linear-gradient(180deg, rgba(11,20,36,0.96), rgba(9,18,33,0.88))' },
+  card: { ...cardBase, padding: '22px', display: 'grid', gap: '18px', background: 'linear-gradient(180deg, rgba(11,20,36,0.96), rgba(9,18,33,0.88))' },
   formCard: { ...cardBase, padding: '28px', display: 'grid', gap: '22px', background: 'linear-gradient(180deg, rgba(13,25,45,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(103,232,249,0.12)', boxShadow: '0 28px 70px rgba(2, 6, 23, 0.42)' },
   historyCard: { ...cardBase, padding: '28px', display: 'grid', gap: '22px', background: 'linear-gradient(180deg, rgba(12,22,40,0.98), rgba(9,18,33,0.9))', border: '1px solid rgba(148,163,184,0.14)', boxShadow: '0 26px 64px rgba(2, 6, 23, 0.38)' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' },
@@ -905,6 +1006,10 @@ const styles = {
   actionRow: { display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' },
   smallButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
   deleteButton: { border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(127,29,29,0.2)', color: '#fca5a5', fontWeight: 600, cursor: 'pointer' },
+  fabButton: { position: 'fixed', right: 'max(18px, calc(50% - 222px))', bottom: '90px', width: '56px', height: '56px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #2563eb, #0f766e)', color: '#fff', fontSize: '2rem', lineHeight: 1, boxShadow: '0 20px 40px rgba(2, 6, 23, 0.35)', cursor: 'pointer', zIndex: 25 },
+  bottomNav: { position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: '18px', width: 'min(460px, calc(100% - 24px))', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', padding: '10px', borderRadius: '24px', background: 'rgba(8,16,31,0.92)', border: '1px solid rgba(148,163,184,0.14)', backdropFilter: 'blur(18px)', boxShadow: '0 20px 40px rgba(2, 6, 23, 0.45)', zIndex: 20 },
+  navButton: (active) => ({ border: 'none', borderRadius: '16px', padding: '12px 8px', background: active ? 'rgba(37,99,235,0.18)' : 'transparent', color: active ? '#eff6ff' : '#8ea1bf', fontWeight: 700, cursor: 'pointer' }),
+  navIcon: { fontSize: '0.76rem', letterSpacing: '0.02em' },
 }
 
 export default Dashboard
