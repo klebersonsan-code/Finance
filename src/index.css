@@ -363,10 +363,23 @@ select:focus {
 
   .summary-grid {
     gap: 12px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .summary-grid article[style] {
-    padding: 18px !important;
+    min-height: 118px;
+    padding: 16px !important;
+    gap: 8px !important;
+  }
+
+  .summary-grid article[style] strong {
+    font-size: 1.15rem !important;
+    line-height: 1.15 !important;
+    word-break: break-word;
+  }
+
+  .summary-grid article[style] span {
+    font-size: 0.8rem !important;
   }
 
   .dashboard-shell div[style*='grid-template-columns: repeat(2'] {
@@ -412,6 +425,19 @@ select:focus {
 
   .hero-main .hero-stats {
     grid-template-columns: 1fr 1fr !important;
+  }
+
+  .summary-grid {
+    gap: 10px !important;
+  }
+
+  .summary-grid article[style] {
+    min-height: 108px;
+    padding: 14px !important;
+  }
+
+  .summary-grid article[style] strong {
+    font-size: 1.02rem !important;
   }
 }
 
