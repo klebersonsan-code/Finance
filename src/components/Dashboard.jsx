@@ -752,28 +752,28 @@ function Dashboard(props) {
                           <article
                             key={item.id}
                             style={styles.transactionItem}
-                            className="transaction-card list-item-rise"
+                            className="transaction-card list-item-rise history-transaction"
                           >
-                            <div style={styles.transactionLeft}>
+                            <div style={styles.transactionLeft} className="history-left">
                               <div style={styles.iconBubble}>{category.icon}</div>
                               <div>
-                                <div style={styles.transactionTop}>
+                                <div style={styles.transactionTop} className="history-top">
                                   <strong style={styles.transactionTitle}>{item.description}</strong>
                                   <span style={styles.typePill(item.type === 'receita')}>
                                     {item.type}
                                   </span>
                                 </div>
-                                <div style={styles.metaLine}>
+                                <div style={styles.metaLine} className="history-meta">
                                   <span>{category.label}</span>
                                   <span>{formatShortDate(item.date)}</span>
                                 </div>
                               </div>
                             </div>
-                            <div style={styles.transactionRight}>
+                            <div style={styles.transactionRight} className="history-right">
                               <strong style={styles.amount(item.type === 'receita')}>
                                 {item.type === 'receita' ? '+' : '-'} {formatCurrency(item.amount)}
                               </strong>
-                              <div style={styles.actionRow}>
+                              <div style={styles.actionRow} className="history-actions">
                                 <button type="button" onClick={() => handleEdit(item)} style={styles.smallButton} className="interactive-button">
                                   Editar
                                 </button>
