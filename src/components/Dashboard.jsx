@@ -42,11 +42,13 @@ function Dashboard(props) {
     hasMoreHistory,
     onLoadMoreHistory,
     savingTransaction,
+    clearingTransactions,
     syncStatus,
     error,
     notice,
     onSaveTransaction,
     onDeleteTransaction,
+    onClearAllTransactions,
     onSignOut,
   } = props
 
@@ -208,6 +210,21 @@ function Dashboard(props) {
     const success = await onDeleteTransaction(id)
     if (success && editingId === id) {
       resetForm()
+    }
+  }
+
+  async function handleClearAll() {
+    const confirmed = window.confirm(
+      'Isso vai remover todas as transacoes da sua conta. Deseja continuar?',
+    )
+
+    if (!confirmed) return
+
+    const success = await onClearAllTransactions()
+
+    if (success) {
+      resetForm()
+      closeTransactionSheet()
     }
   }
 
@@ -636,6 +653,23 @@ function Dashboard(props) {
                   ))}
                 </select>
               </Field>
+
+              <div style={styles.dangerZone}>
+                <div>
+                  <strong style={styles.dangerTitle}>Zerar informacoes</strong>
+                  <p style={styles.dangerText}>
+                    Remove todas as transacoes salvas para iniciar um novo ciclo.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  style={styles.dangerButton(clearingTransactions)}
+                  className="interactive-button"
+                >
+                  {clearingTransactions ? 'Zerando...' : 'Zerar tudo'}
+                </button>
+              </div>
             </section>
           </aside>
 
@@ -1067,6 +1101,9 @@ const styles = {
   filterSummary: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
   filterChip: { display: 'inline-flex', alignItems: 'center', padding: '8px 12px', borderRadius: '999px', background: 'rgba(37,99,235,0.16)', border: '1px solid rgba(125,211,252,0.14)', color: '#cbe9ff', fontSize: '0.84rem', fontWeight: 600 },
   filterHint: { color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6 },
+  dangerZone: { display: 'grid', gap: '12px', padding: '16px', borderRadius: '18px', background: 'rgba(56, 14, 14, 0.24)', border: '1px solid rgba(248,113,113,0.14)' },
+  dangerTitle: { color: '#fee2e2', fontSize: '0.95rem' },
+  dangerText: { marginTop: '6px', color: '#fca5a5', fontSize: '0.88rem', lineHeight: 1.6 },
   chartBox: { width: '100%', height: '300px' },
   chartEmpty: { minHeight: '300px', display: 'grid', placeItems: 'center', gap: '16px', textAlign: 'center', padding: '28px', borderRadius: '22px', background: 'rgba(15,23,42,0.42)', border: '1px dashed rgba(148,163,184,0.18)' },
   chartEmptyIcon: { width: '56px', height: '56px', borderRadius: '18px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(20,184,166,0.12))', border: '1px solid rgba(125,211,252,0.12)', color: '#cbe9ff', fontSize: '1.4rem', fontWeight: 700 },
@@ -1213,6 +1250,7 @@ const styles = {
   actionRow: { display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' },
   smallButton: { border: '1px solid rgba(148,163,184,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(15,23,42,0.7)', color: '#cbd5e1', fontWeight: 600, cursor: 'pointer' },
   deleteButton: { border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', padding: '9px 12px', background: 'rgba(127,29,29,0.2)', color: '#fca5a5', fontWeight: 600, cursor: 'pointer' },
+  dangerButton: (loading) => ({ border: '1px solid rgba(248,113,113,0.2)', borderRadius: '14px', padding: '12px 16px', background: loading ? 'rgba(69, 10, 10, 0.6)' : 'rgba(127,29,29,0.26)', color: '#fee2e2', fontWeight: 700, cursor: loading ? 'wait' : 'pointer' }),
   loadMoreButton: (loading) => ({ justifySelf: 'center', width: 'min(280px, 100%)', border: '1px solid rgba(125,211,252,0.16)', borderRadius: '16px', padding: '13px 18px', background: loading ? 'rgba(30,41,59,0.9)' : 'rgba(15,23,42,0.8)', color: '#d7f9ff', fontWeight: 700, cursor: loading ? 'wait' : 'pointer' }),
   sheetOverlay: { position: 'fixed', inset: 0, padding: '24px', background: 'rgba(2, 6, 23, 0.64)', backdropFilter: 'blur(12px)', display: 'grid', alignItems: 'center', justifyItems: 'center', zIndex: 40 },
   sheetWrapper: { width: 'min(560px, 100%)', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', padding: 0 },

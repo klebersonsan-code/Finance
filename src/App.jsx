@@ -36,6 +36,7 @@ function App() {
   const [loadingTransactions, setLoadingTransactions] = useState(false)
   const [loadingMoreHistory, setLoadingMoreHistory] = useState(false)
   const [savingTransaction, setSavingTransaction] = useState(false)
+  const [clearingTransactions, setClearingTransactions] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState(null)
   const [authError, setAuthError] = useState('')
@@ -501,6 +502,35 @@ function App() {
     return true
   }
 
+  async function handleClearAllTransactions() {
+    if (!user) return false
+
+    setClearingTransactions(true)
+    setError('')
+    setNotice(null)
+
+    const { error: clearError } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('user_id', user.id)
+
+    if (clearError) {
+      setError(clearError.message)
+      setNotice({ type: 'error', message: 'Nao foi possivel zerar os dados.' })
+      setClearingTransactions(false)
+      return false
+    }
+
+    setTransactions([])
+    setMetrics(emptyMetrics)
+    setMonthOptions([])
+    setHistoryPage(1)
+    setHistoryHasMore(false)
+    setNotice({ type: 'success', message: 'Todas as transacoes foram removidas.' })
+    setClearingTransactions(false)
+    return true
+  }
+
   async function handleSignOut() {
     if (!isSupabaseConfigured) return
 
@@ -550,11 +580,13 @@ function App() {
       hasMoreHistory={historyHasMore}
       onLoadMoreHistory={loadMoreHistory}
       savingTransaction={savingTransaction}
+      clearingTransactions={clearingTransactions}
       syncStatus={syncStatus}
       error={error}
       notice={notice}
       onSaveTransaction={handleSaveTransaction}
       onDeleteTransaction={handleDeleteTransaction}
+      onClearAllTransactions={handleClearAllTransactions}
       onSignOut={handleSignOut}
     />
   )
