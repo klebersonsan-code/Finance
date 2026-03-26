@@ -754,9 +754,9 @@ function Dashboard(props) {
                             style={styles.transactionItem}
                             className="transaction-card list-item-rise history-transaction"
                           >
-                            <div style={styles.transactionLeft} className="history-left">
-                              <div style={styles.iconBubble}>{category.icon}</div>
-                              <div>
+                            <div style={styles.iconBubble}>{category.icon}</div>
+                            <div style={styles.transactionBody} className="history-body">
+                              <div style={styles.transactionMain}>
                                 <div style={styles.transactionTop} className="history-top">
                                   <strong style={styles.transactionTitle}>{item.description}</strong>
                                   <span style={styles.typePill(item.type === 'receita')}>
@@ -768,18 +768,18 @@ function Dashboard(props) {
                                   <span>{formatShortDate(item.date)}</span>
                                 </div>
                               </div>
-                            </div>
-                            <div style={styles.transactionRight} className="history-right">
-                              <strong style={styles.amount(item.type === 'receita')}>
-                                {item.type === 'receita' ? '+' : '-'} {formatCurrency(item.amount)}
-                              </strong>
-                              <div style={styles.actionRow} className="history-actions">
-                                <button type="button" onClick={() => handleEdit(item)} style={styles.smallButton} className="interactive-button">
-                                  Editar
-                                </button>
-                                <button type="button" onClick={() => handleDelete(item.id)} style={styles.deleteButton} className="interactive-button">
-                                  Excluir
-                                </button>
+                              <div style={styles.transactionRight} className="history-right">
+                                <strong style={styles.amount(item.type === 'receita')}>
+                                  {item.type === 'receita' ? '+' : '-'} {formatCurrency(item.amount)}
+                                </strong>
+                                <div style={styles.actionRow} className="history-actions">
+                                  <button type="button" onClick={() => handleEdit(item)} style={styles.smallButton} className="interactive-button">
+                                    Editar
+                                  </button>
+                                  <button type="button" onClick={() => handleDelete(item.id)} style={styles.deleteButton} className="interactive-button">
+                                    Excluir
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </article>
@@ -1238,9 +1238,10 @@ const styles = {
   monthTitle: { margin: 0, color: '#f8fafc', fontSize: '1.08rem', textTransform: 'capitalize' },
   monthBadge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '9px 13px', borderRadius: '999px', background: 'rgba(15,23,42,0.82)', border: '1px solid rgba(125,211,252,0.12)', color: '#d7f9ff', fontSize: '0.88rem', fontWeight: 700 },
   transactionList: { display: 'grid', gap: '12px' },
-  transactionItem: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '14px', padding: '18px', borderRadius: '20px', background: 'linear-gradient(180deg, rgba(9,18,33,0.96), rgba(10,20,37,0.88))', border: '1px solid rgba(148,163,184,0.14)', boxShadow: '0 14px 28px rgba(2, 6, 23, 0.2)' },
-  transactionLeft: { display: 'flex', gap: '14px', alignItems: 'flex-start', minWidth: 0 },
+  transactionItem: { display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr)', gap: '14px', padding: '18px', borderRadius: '20px', background: 'linear-gradient(180deg, rgba(9,18,33,0.96), rgba(10,20,37,0.88))', border: '1px solid rgba(148,163,184,0.14)', boxShadow: '0 14px 28px rgba(2, 6, 23, 0.2)', alignItems: 'start' },
   iconBubble: { width: '48px', height: '48px', borderRadius: '16px', display: 'grid', placeItems: 'center', fontSize: '1.3rem', background: 'linear-gradient(135deg, rgba(37,99,235,0.24), rgba(20,184,166,0.16))', border: '1px solid rgba(125,211,252,0.12)', flexShrink: 0 },
+  transactionBody: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '14px', alignItems: 'start', minWidth: 0 },
+  transactionMain: { minWidth: 0 },
   transactionTop: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
   transactionTitle: { color: '#f8fafc', fontSize: '1rem', lineHeight: 1.35, letterSpacing: '-0.01em' },
   metaLine: { display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', color: '#94a3b8', fontSize: '0.85rem', marginTop: '10px' },

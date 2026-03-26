@@ -683,12 +683,15 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 
-  .dashboard-shell article[style*='grid-template-columns: minmax(0, 1fr) auto'] {
-    grid-template-columns: 1fr !important;
+  .history-transaction {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    align-items: start !important;
   }
 
-  .history-transaction {
-    gap: 12px !important;
+  .history-body {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
 
   .history-right {
