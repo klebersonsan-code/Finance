@@ -687,6 +687,33 @@ select:focus {
     grid-template-columns: 1fr !important;
   }
 
+  .dashboard-history article[style*='grid-template-columns: minmax(0, 1fr) auto'] {
+    gap: 12px !important;
+  }
+
+  .dashboard-history article[style*='grid-template-columns: minmax(0, 1fr) auto'] div[style*='justify-items: end'] {
+    justify-items: start !important;
+    align-content: start !important;
+    width: 100% !important;
+  }
+
+  .dashboard-history article[style*='grid-template-columns: minmax(0, 1fr) auto'] div[style*='justify-content: flex-end'] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    justify-content: stretch !important;
+    width: 100% !important;
+  }
+
+  .dashboard-history article[style*='grid-template-columns: minmax(0, 1fr) auto'] div[style*='justify-content: flex-end'] button {
+    width: 100% !important;
+  }
+
+  .dashboard-history article[style*='grid-template-columns: minmax(0, 1fr) auto'] div[style*='margin-top: 10px'] {
+    display: grid !important;
+    gap: 4px !important;
+    margin-top: 8px !important;
+  }
+
   .app-bottom-nav {
     width: calc(100% - 20px) !important;
     bottom: 10px !important;
