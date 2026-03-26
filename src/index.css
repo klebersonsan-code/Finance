@@ -519,7 +519,7 @@ select:focus {
 
   .dashboard-shell {
     padding-top: 18px !important;
-    padding-bottom: 28px !important;
+    padding-bottom: 150px !important;
   }
 
   .dashboard-shell,
