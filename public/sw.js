@@ -1,5 +1,12 @@
-const CACHE_NAME = 'finance-flow-v2'
-const APP_SHELL = ['/', '/manifest.json', '/app-icon.svg', '/favicon.svg']
+const CACHE_NAME = 'finance-flow-v3'
+const APP_SHELL = [
+  '/',
+  '/manifest.json',
+  '/app-icon.svg',
+  '/favicon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

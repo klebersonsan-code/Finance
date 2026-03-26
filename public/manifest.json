@@ -2,21 +2,23 @@
   "name": "Finance Pro",
   "short_name": "Finance Pro",
   "description": "Gerencie receitas, despesas e acompanhe sua vida financeira com uma experiencia premium.",
+  "id": "/",
   "lang": "pt-BR",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait",
   "background_color": "#07111f",
   "theme_color": "#07111f",
+  "prefer_related_applications": false,
   "categories": ["finance", "productivity"],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
