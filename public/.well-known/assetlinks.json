@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.klebersonsan.financepro",
+      "sha256_cert_fingerprints": [
+        "F0:BE:F0:C5:10:67:F4:10:DD:57:07:39:64:E4:9C:A1:30:12:78:2C:6F:13:02:31:0D:39:3B:02:0A:D2:B1:A8"
+      ]
+    }
+  }
+]
