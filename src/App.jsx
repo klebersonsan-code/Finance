@@ -18,6 +18,8 @@ const emptyMetrics = {
   expenseCategoryData: [],
 }
 
+const DEFAULT_APP_URL = 'https://finance-pro-top.vercel.app/'
+
 function getAuthRedirectUrl() {
   const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim()
 
@@ -26,14 +28,19 @@ function getAuthRedirectUrl() {
   }
 
   const currentOrigin = window.location.origin
-  const isLocalhost =
-    currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')
+  const hostname = window.location.hostname
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1'
+  const isLocalNetworkHost = /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)
 
-  if (isLocalhost) {
-    return 'https://finance-pro-top.vercel.app/'
+  if (isLocalhost || isLocalNetworkHost) {
+    return DEFAULT_APP_URL
   }
 
-  return `${currentOrigin}/`
+  if (currentOrigin.includes('vercel.app')) {
+    return `${currentOrigin}/`
+  }
+
+  return DEFAULT_APP_URL
 }
 
 function normalizeMetricsRow(row) {
