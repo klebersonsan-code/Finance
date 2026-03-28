@@ -18,6 +18,24 @@ const emptyMetrics = {
   expenseCategoryData: [],
 }
 
+function getAuthRedirectUrl() {
+  const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim()
+
+  if (configuredAppUrl) {
+    return configuredAppUrl.endsWith('/') ? configuredAppUrl : `${configuredAppUrl}/`
+  }
+
+  const currentOrigin = window.location.origin
+  const isLocalhost =
+    currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')
+
+  if (isLocalhost) {
+    return 'https://finance-pro-top.vercel.app/'
+  }
+
+  return `${currentOrigin}/`
+}
+
 function normalizeMetricsRow(row) {
   return {
     receitas: Number(row?.receitas ?? 0),
@@ -420,7 +438,7 @@ function App() {
     setAuthLoading(true)
     setAuthError('')
 
-    const redirectTo = `${window.location.origin}/`
+    const redirectTo = getAuthRedirectUrl()
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
     })
