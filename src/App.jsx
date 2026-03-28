@@ -419,6 +419,9 @@ function App() {
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: getAuthRedirectUrl(),
+      },
     })
 
     if (signUpError) {
