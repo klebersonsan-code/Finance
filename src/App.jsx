@@ -435,7 +435,7 @@ function App() {
       setAuthError(signUpError.message)
     } else {
       setAuthError(
-        'Conta criada. Se a confirmacao por e-mail estiver ativa, confirme antes de entrar.',
+        'Conta criada. Verifique seu e-mail para confirmar o cadastro antes de entrar. O e-mail de confirmacao pode aparecer com o nome Supabase.',
       )
     }
 

@@ -305,12 +305,12 @@ function AuthScreen({
 
           <p style={styles.helper}>
             {passwordRecoveryMode
-              ? 'Depois de salvar a nova senha, seu acesso volta ao normal.'
+                ? 'Depois de salvar a nova senha, seu acesso volta ao normal.'
               : resetRequestMode
                 ? 'Use o mesmo e-mail da sua conta para receber o link de recuperacao.'
                 : mode === 'signin'
                   ? 'Use seu login para acessar seu painel financeiro.'
-                  : 'Depois do cadastro, verifique seu e-mail caso seja solicitada confirmacao.'}
+                  : 'Depois do cadastro, verifique seu e-mail para confirmar a conta. Esse e-mail pode chegar com o nome Supabase.'}
           </p>
         </form>
       </section>
