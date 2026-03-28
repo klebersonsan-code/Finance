@@ -31,6 +31,7 @@ function normalizeMetricsRow(row) {
 
 function App() {
   const [session, setSession] = useState(null)
+  const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [transactions, setTransactions] = useState([])
   const [loadingTransactions, setLoadingTransactions] = useState(false)
@@ -93,6 +94,13 @@ function App() {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (!active) return
+      if (_event === 'PASSWORD_RECOVERY') {
+        setPasswordRecoveryMode(true)
+        setAuthError('')
+      }
+      if (_event === 'SIGNED_OUT') {
+        setPasswordRecoveryMode(false)
+      }
       setSession(nextSession ?? null)
     })
 
@@ -406,6 +414,46 @@ function App() {
     setAuthLoading(false)
   }
 
+  async function handleRequestPasswordReset(email) {
+    if (!isSupabaseConfigured) return
+
+    setAuthLoading(true)
+    setAuthError('')
+
+    const redirectTo = `${window.location.origin}/`
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    })
+
+    if (resetError) {
+      setAuthError(resetError.message)
+    } else {
+      setAuthError('Enviamos um link para redefinir sua senha no e-mail informado.')
+    }
+
+    setAuthLoading(false)
+  }
+
+  async function handleUpdatePassword(nextPassword) {
+    if (!isSupabaseConfigured) return
+
+    setAuthLoading(true)
+    setAuthError('')
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: nextPassword,
+    })
+
+    if (updateError) {
+      setAuthError(updateError.message)
+    } else {
+      setAuthError('Senha atualizada com sucesso. Voce ja pode entrar novamente.')
+      setPasswordRecoveryMode(false)
+    }
+
+    setAuthLoading(false)
+  }
+
   async function handleSaveTransaction(transaction) {
     if (!user) return false
 
@@ -547,14 +595,17 @@ function App() {
     }
   }
 
-  if (!user) {
+  if (!user || passwordRecoveryMode) {
     return (
       <AuthScreen
         configured={isSupabaseConfigured}
         onSignIn={handleSignIn}
         onSignUp={handleSignUp}
+        onRequestPasswordReset={handleRequestPasswordReset}
+        onUpdatePassword={handleUpdatePassword}
         authLoading={authLoading}
         authError={authError}
+        passwordRecoveryMode={passwordRecoveryMode}
       />
     )
   }

@@ -1,14 +1,81 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) {
+function EyeIcon({ open }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z" />
+      {open ? <circle cx="12" cy="12" r="3.2" /> : <path d="M4 4l16 16" />}
+    </svg>
+  )
+}
+
+function AuthScreen({
+  configured,
+  onSignIn,
+  onSignUp,
+  onRequestPasswordReset,
+  onUpdatePassword,
+  authLoading,
+  authError,
+  passwordRecoveryMode,
+}) {
   const [mode, setMode] = useState('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [localError, setLocalError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [resetRequestMode, setResetRequestMode] = useState(false)
+
+  useEffect(() => {
+    setLocalError('')
+  }, [mode, passwordRecoveryMode, resetRequestMode])
 
   async function handleSubmit(event) {
     event.preventDefault()
+
+    if (passwordRecoveryMode) {
+      if (!password.trim() || !confirmPassword.trim()) {
+        setLocalError('Preencha e confirme a nova senha.')
+        return
+      }
+
+      if (password.trim().length < 6) {
+        setLocalError('Use uma senha com pelo menos 6 caracteres.')
+        return
+      }
+
+      if (password !== confirmPassword) {
+        setLocalError('As senhas nao coincidem.')
+        return
+      }
+
+      setLocalError('')
+      await onUpdatePassword(password)
+      return
+    }
+
+    if (resetRequestMode) {
+      if (!email.trim()) {
+        setLocalError('Informe o e-mail para recuperar a senha.')
+        return
+      }
+
+      setLocalError('')
+      await onRequestPasswordReset(email)
+      return
+    }
 
     if (!email.trim() || !password.trim()) {
       setLocalError('Preencha e-mail e senha.')
@@ -25,9 +92,14 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
     await onSignUp(email, password)
   }
 
-  const isSuccessMessage = authError.startsWith('Conta criada')
+  const isSuccessMessage =
+    authError.startsWith('Conta criada') ||
+    authError.startsWith('Enviamos um link') ||
+    authError.startsWith('Senha atualizada')
   const feedbackMessage = localError || authError
   const feedbackStyle = isSuccessMessage ? styles.successBox : styles.errorBox
+  const isAuthFormDisabled = !configured || authLoading
+  const canShowForgotPassword = mode === 'signin' && !passwordRecoveryMode
 
   return (
     <main style={styles.page} className="auth-shell">
@@ -92,68 +164,112 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
           <div style={styles.formTop}>
             <div>
               <strong style={styles.formTitle}>
-                {mode === 'signin' ? 'Acessar conta' : 'Criar sua conta'}
+                {passwordRecoveryMode
+                  ? 'Redefinir senha'
+                  : resetRequestMode
+                    ? 'Recuperar acesso'
+                    : mode === 'signin'
+                      ? 'Acessar conta'
+                      : 'Criar sua conta'}
               </strong>
               <p style={styles.formSubtitle}>
-                {mode === 'signin'
-                  ? 'Entre para continuar de onde parou.'
-                  : 'Comece a organizar sua vida financeira em minutos.'}
+                {passwordRecoveryMode
+                  ? 'Crie uma nova senha para voltar ao seu painel.'
+                  : resetRequestMode
+                    ? 'Enviaremos um link para redefinir sua senha.'
+                    : mode === 'signin'
+                      ? 'Entre para continuar de onde parou.'
+                      : 'Comece a organizar sua vida financeira em minutos.'}
               </p>
             </div>
           </div>
 
-          <div style={styles.modeSwitch}>
-            <button
-              type="button"
-              onClick={() => setMode('signin')}
-              style={styles.modeButton(mode === 'signin')}
-              className="interactive-button"
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('signup')}
-              style={styles.modeButton(mode === 'signup')}
-              className="interactive-button"
-            >
-              Cadastro
-            </button>
-          </div>
+          {!passwordRecoveryMode && !resetRequestMode ? (
+            <div style={styles.modeSwitch}>
+              <button
+                type="button"
+                onClick={() => setMode('signin')}
+                style={styles.modeButton(mode === 'signin')}
+                className="interactive-button"
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                style={styles.modeButton(mode === 'signup')}
+                className="interactive-button"
+              >
+                Cadastro
+              </button>
+            </div>
+          ) : null}
 
-          <label style={styles.field}>
-            <span style={styles.label}>E-mail</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="voce@email.com"
-              style={styles.input}
-              disabled={!configured || authLoading}
-            />
-          </label>
+          {!passwordRecoveryMode ? (
+            <label style={styles.field}>
+              <span style={styles.label}>E-mail</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="voce@email.com"
+                style={styles.input}
+                disabled={isAuthFormDisabled}
+              />
+            </label>
+          ) : null}
 
           <label style={styles.field}>
             <span style={styles.labelRow}>
-              <span style={styles.label}>Senha</span>
+              <span style={styles.label}>
+                {passwordRecoveryMode ? 'Nova senha' : 'Senha'}
+              </span>
               <button
                 type="button"
                 onClick={() => setShowPassword((current) => !current)}
-                style={styles.textButton}
+                style={styles.iconButton}
                 className="interactive-button"
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
-                {showPassword ? 'Ocultar' : 'Mostrar'}
+                <EyeIcon open={showPassword} />
               </button>
             </span>
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Sua senha"
+              placeholder={passwordRecoveryMode ? 'Digite sua nova senha' : 'Sua senha'}
               style={styles.input}
-              disabled={!configured || authLoading}
+              disabled={isAuthFormDisabled}
             />
           </label>
+
+          {passwordRecoveryMode ? (
+            <label style={styles.field}>
+              <span style={styles.labelRow}>
+                <span style={styles.label}>Confirmar senha</span>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((current) => !current)}
+                  style={styles.iconButton}
+                  className="interactive-button"
+                  aria-label={
+                    showConfirmPassword ? 'Ocultar confirmacao de senha' : 'Mostrar confirmacao de senha'
+                  }
+                >
+                  <EyeIcon open={showConfirmPassword} />
+                </button>
+              </span>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                placeholder="Confirme a nova senha"
+                style={styles.input}
+                disabled={isAuthFormDisabled}
+              />
+            </label>
+          ) : null}
 
           {feedbackMessage ? (
             <div style={feedbackStyle}>{feedbackMessage}</div>
@@ -161,21 +277,40 @@ function AuthScreen({ configured, onSignIn, onSignUp, authLoading, authError }) 
 
           <button
             type="submit"
-            disabled={!configured || authLoading}
-            style={styles.submitButton(!configured || authLoading)}
+            disabled={isAuthFormDisabled}
+            style={styles.submitButton(isAuthFormDisabled)}
             className="interactive-button"
           >
             {authLoading
               ? 'Processando...'
-              : mode === 'signin'
-                ? 'Entrar'
-                : 'Criar conta'}
+              : passwordRecoveryMode
+                ? 'Salvar nova senha'
+                : resetRequestMode
+                  ? 'Enviar link'
+                  : mode === 'signin'
+                    ? 'Entrar'
+                    : 'Criar conta'}
           </button>
 
+          {canShowForgotPassword ? (
+            <button
+              type="button"
+              onClick={() => setResetRequestMode((current) => !current)}
+              style={styles.secondaryTextButton}
+              className="interactive-button"
+            >
+              {resetRequestMode ? 'Voltar ao login' : 'Esqueci a senha'}
+            </button>
+          ) : null}
+
           <p style={styles.helper}>
-            {mode === 'signin'
-              ? 'Use seu login para acessar seu painel financeiro.'
-              : 'Depois do cadastro, verifique seu e-mail caso seja solicitada confirmacao.'}
+            {passwordRecoveryMode
+              ? 'Depois de salvar a nova senha, seu acesso volta ao normal.'
+              : resetRequestMode
+                ? 'Use o mesmo e-mail da sua conta para receber o link de recuperacao.'
+                : mode === 'signin'
+                  ? 'Use seu login para acessar seu painel financeiro.'
+                  : 'Depois do cadastro, verifique seu e-mail caso seja solicitada confirmacao.'}
           </p>
         </form>
       </section>
@@ -385,12 +520,26 @@ const styles = {
     fontSize: '0.92rem',
     fontWeight: 600,
   },
-  textButton: {
+  iconButton: {
+    width: '34px',
+    height: '34px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     border: 'none',
     padding: 0,
+    borderRadius: '999px',
     background: 'transparent',
     color: '#7dd3fc',
-    fontSize: '0.84rem',
+    cursor: 'pointer',
+  },
+  secondaryTextButton: {
+    border: 'none',
+    padding: 0,
+    justifySelf: 'start',
+    background: 'transparent',
+    color: '#7dd3fc',
+    fontSize: '0.92rem',
     fontWeight: 600,
     cursor: 'pointer',
   },
