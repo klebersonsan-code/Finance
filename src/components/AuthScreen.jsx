@@ -176,7 +176,7 @@ function AuthScreen({
                 {passwordRecoveryMode
                   ? 'Crie uma nova senha para voltar ao seu painel.'
                   : resetRequestMode
-                    ? 'Enviaremos um link para redefinir sua senha.'
+                    ? 'Digite seu e-mail e clique em enviar o link.'
                     : mode === 'signin'
                       ? 'Entre para continuar de onde parou.'
                       : 'Comece a organizar sua vida financeira em minutos.'}
@@ -219,30 +219,32 @@ function AuthScreen({
             </label>
           ) : null}
 
-          <label style={styles.field}>
-            <span style={styles.labelRow}>
-              <span style={styles.label}>
-                {passwordRecoveryMode ? 'Nova senha' : 'Senha'}
+          {!resetRequestMode ? (
+            <label style={styles.field}>
+              <span style={styles.labelRow}>
+                <span style={styles.label}>
+                  {passwordRecoveryMode ? 'Nova senha' : 'Senha'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  style={styles.iconButton}
+                  className="interactive-button"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
               </span>
-              <button
-                type="button"
-                onClick={() => setShowPassword((current) => !current)}
-                style={styles.iconButton}
-                className="interactive-button"
-                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                <EyeIcon open={showPassword} />
-              </button>
-            </span>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={passwordRecoveryMode ? 'Digite sua nova senha' : 'Sua senha'}
-              style={styles.input}
-              disabled={isAuthFormDisabled}
-            />
-          </label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder={passwordRecoveryMode ? 'Digite sua nova senha' : 'Sua senha'}
+                style={styles.input}
+                disabled={isAuthFormDisabled}
+              />
+            </label>
+          ) : null}
 
           {passwordRecoveryMode ? (
             <label style={styles.field}>
@@ -307,7 +309,7 @@ function AuthScreen({
             {passwordRecoveryMode
                 ? 'Depois de salvar a nova senha, seu acesso volta ao normal.'
               : resetRequestMode
-                ? 'Use o mesmo e-mail da sua conta para receber o link de recuperacao.'
+                ? 'Use o e-mail da sua conta para receber o link de recuperacao.'
                 : mode === 'signin'
                   ? 'Use seu login para acessar seu painel financeiro.'
                   : 'Depois do cadastro, verifique seu e-mail para confirmar a conta. Esse e-mail pode chegar com o nome Supabase.'}
