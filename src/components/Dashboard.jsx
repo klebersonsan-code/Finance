@@ -69,6 +69,7 @@ function Dashboard(props) {
   }, [transactions])
 
   const currentCategories = categoryMap[form.type]
+  const selectedCategoryNeedsCustomName = form.category === 'outros'
   const hasTransactions = totalTransactions > 0
   const activeFilters = [
     typeFilter !== 'todos'
@@ -167,6 +168,15 @@ function Dashboard(props) {
         ...current,
         type: value,
         category: getDefaultCategory(value),
+        customCategory: '',
+      }))
+      return
+    }
+    if (name === 'category') {
+      setForm((current) => ({
+        ...current,
+        category: value,
+        customCategory: value === 'outros' ? current.customCategory : '',
       }))
       return
     }
@@ -176,14 +186,17 @@ function Dashboard(props) {
   async function handleSubmit(event) {
     event.preventDefault()
     const amount = Number(form.amount)
-    if (!form.description.trim() || !amount || amount <= 0) return
+    const resolvedCategory =
+      form.category === 'outros' ? form.customCategory.trim() : form.category
+
+    if (!form.description.trim() || !resolvedCategory || !amount || amount <= 0) return
 
     const success = await onSaveTransaction({
       id: editingId,
       description: form.description.trim(),
       amount,
       type: form.type,
-      category: form.category,
+      category: resolvedCategory,
       date: form.date,
     })
 
@@ -194,12 +207,16 @@ function Dashboard(props) {
   }
 
   function handleEdit(item) {
+    const availableCategories = categoryMap[item.type]
+    const hasMappedCategory = availableCategories.some((category) => category.value === item.category)
+
     setEditingId(item.id)
     setForm({
       description: item.description,
       amount: String(item.amount),
       type: item.type,
-      category: item.category,
+      category: hasMappedCategory ? item.category : 'outros',
+      customCategory: hasMappedCategory ? '' : item.category,
       date: item.date,
     })
     setActiveTab('adicionar')
@@ -341,6 +358,18 @@ function Dashboard(props) {
           />
         </Field>
       </div>
+
+      {selectedCategoryNeedsCustomName ? (
+        <Field label="Nome da categoria">
+          <input
+            name="customCategory"
+            value={form.customCategory}
+            onChange={handleChange}
+            placeholder="Ex.: Cursos, cashback, conserto"
+            style={styles.input}
+          />
+        </Field>
+      ) : null}
 
       <button
         type="submit"
